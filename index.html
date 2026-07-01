@@ -1,13 +1,142 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Portfolio Fotografico</title>
 
-<title>Tommaso Conti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
-<style>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #ffffff;
+      color: #111;
+      overflow-x: hidden;
+    }
+
+    header {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 64px;
+      letter-spacing: -2px;
+      font-weight: 600;
+    }
+
+    h2 {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 4px;
+      color: #666;
+    }
+
+    p {
+      margin-top: 25px;
+      font-size: 16px;
+      color: #444;
+      max-width: 500px;
+      line-height: 1.6;
+    }
+
+    .gallery {
+      column-count: 3;
+      column-gap: 15px;
+      padding: 40px;
+    }
+
+    .gallery img {
+      width: 100%;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      cursor: pointer;
+    }
+
+    .gallery img:hover {
+      transform: scale(1.02);
+      opacity: 0.95;
+    }
+
+    footer {
+      text-align: center;
+      padding: 50px 20px;
+      font-size: 14px;
+      color: #888;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .gallery {
+        column-count: 2;
+      }
+
+      h1 {
+        font-size: 42px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .gallery {
+        column-count: 1;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+    }
+
+    /* smooth scroll */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>IL TUO NOME</h1>
+    <h2>FOTOGRAFIA</h2>
+    <p>Benvenuti nel mio portfolio. Una selezione di immagini che raccontano il mio sguardo sul mondo.</p>
+  </header>
+
+  <section class="gallery">
+
+    <!-- FOTO GIÀ CARICATE -->
+    <img src="IMG_1263_VSCO.jpeg" alt="foto 1">
+    <img src="IMG_2924.jpeg" alt="foto 2">
+
+    <!-- AGGIUNGI QUI LE ALTRE 18 FOTO -->
+    <!-- ESEMPIO:
+    <img src="foto3.jpeg">
+    <img src="foto4.jpeg">
+    -->
+
+  </section>
+
+  <footer>
+    ©️ 2026 – Portfolio Fotografico
+  </footer>
+
+</body>
+</html>
 
 
 
