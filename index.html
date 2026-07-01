@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Portfolio Fotografico</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
@@ -35,8 +33,8 @@
 
     h1 {
       font-size: 64px;
-      letter-spacing: -2px;
       font-weight: 600;
+      letter-spacing: -2px;
     }
 
     h2 {
@@ -90,21 +88,55 @@
     }
 
     /* LIGHTBOX */
-    .lightbox img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 8px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-}
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.98);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
 
     .lightbox img {
       max-width: 90%;
       max-height: 90%;
       border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      transform: scale(0.95);
+      transition: transform 0.25s ease;
     }
 
-    .lightbox.active {
-      display: flex;
+    .lightbox.active img {
+      transform: scale(1);
+    }
+
+    /* FRECCE */
+    .nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 40px;
+      color: #111;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px;
+    }
+
+    .prev { left: 20px; }
+    .next { right: 20px; }
+
+    .nav:hover {
+      opacity: 0.5;
     }
 
     /* RESPONSIVE */
@@ -116,10 +148,7 @@
     @media (max-width: 600px) {
       .gallery { column-count: 1; }
       h1 { font-size: 34px; }
-    }
-
-    html {
-      scroll-behavior: smooth;
+      .nav { font-size: 30px; }
     }
   </style>
 </head>
@@ -127,19 +156,15 @@
 <body>
 
 <header>
-  <h1>IL TUO NOME</h1>
+  <h1>Tommaso Conti</h1>
   <h2>FOTOGRAFIA</h2>
   <p>Benvenuti nel mio portfolio. Una selezione di immagini che raccontano il mio sguardo sul mondo.</p>
 </header>
 
 <section class="gallery">
 
-  <!-- FOTO -->
-  <img src="IMG_1263_VSCO.jpeg" loading="lazy" alt="">
-  <img src="IMG_2924.jpeg" loading="lazy" alt="">
-
-  <!-- AGGIUNGI ALTRE FOTO QUI -->
-  <!-- <img src="foto3.jpg" loading="lazy"> -->
+  <img src="IMG_1263_VSCO.jpeg" loading="lazy">
+  <img src="Broooo.JPG" loading="lazy">
 
 </section>
 
@@ -149,50 +174,100 @@
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox">
-  <img id="lightbox-img" src="" alt="">
+
+  <div class="nav prev" id="prev">&#10094;</div>
+  <div class="nav next" id="next">&#10095;</div>
+
+  <img id="lightbox-img" src="">
 </div>
 
 <script>
+  const images = document.querySelectorAll(".gallery img");
   const lightbox = document.getElementById("lightbox");
   const lightboxImg = document.getElementById("lightbox-img");
 
-  const images = document.querySelectorAll(".gallery img");
+  const prevBtn = document.getElementById("prev");
+  const nextBtn = document.getElementById("next");
 
-  // animazione scroll (fade-in)
+  let currentIndex = 0;
+
+  /* SCROLL ANIMATION */
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
+      if(entry.isIntersecting){
         entry.target.classList.add("show");
       }
     });
   }, { threshold: 0.1 });
 
-  images.forEach(img => {
+  images.forEach((img, index) => {
+
     observer.observe(img);
 
-    // click per lightbox
     img.addEventListener("click", () => {
-      lightbox.classList.add("active");
-      lightboxImg.src = img.src;
+      openLightbox(index);
     });
   });
 
-  // chiudi lightbox cliccando fuori
-  lightbox.addEventListener("click", () => {
+  function openLightbox(index){
+    currentIndex = index;
+    lightbox.classList.add("active");
+    updateImage();
+  }
+
+  function updateImage(){
+    lightboxImg.src = images[currentIndex].src;
+  }
+
+  function closeLightbox(){
     lightbox.classList.remove("active");
+  }
+
+  function nextImage(){
+    currentIndex = (currentIndex + 1) % images.length;
+    updateImage();
+  }
+
+  function prevImage(){
+    currentIndex = (currentIndex - 1 + images.length) % images.length;
+    updateImage();
+  }
+
+  /* CLICK OUTSIDE */
+  lightbox.addEventListener("click", (e) => {
+    if(e.target === lightbox) closeLightbox();
   });
 
-  // chiudi con ESC
+  prevBtn.addEventListener("click", prevImage);
+  nextBtn.addEventListener("click", nextImage);
+
+  /* KEYBOARD */
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      lightbox.classList.remove("active");
-    }
+    if(!lightbox.classList.contains("active")) return;
+
+    if(e.key === "Escape") closeLightbox();
+    if(e.key === "ArrowRight") nextImage();
+    if(e.key === "ArrowLeft") prevImage();
   });
+
+  /* SWIPE MOBILE */
+  let startX = 0;
+
+  lightbox.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+  });
+
+  lightbox.addEventListener("touchend", e => {
+    let endX = e.changedTouches[0].clientX;
+
+    if(startX - endX > 50) nextImage();
+    if(endX - startX > 50) prevImage();
+  });
+
 </script>
 
 </body>
 </html>
-
 
 
 
