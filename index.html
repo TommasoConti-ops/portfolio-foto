@@ -45,18 +45,15 @@
       color: #666;
     }
 
-    .desc-title {
-      font-size: 18px;
-      font-weight: 500;
+    /* DESCRIZIONE */
+    .desc {
       margin-top: 25px;
-    }
-
-    .desc-text {
-      margin-top: 10px;
-      font-size: 15px;
+      font-size: 18px;
       color: #444;
-      max-width: 500px;
       line-height: 1.6;
+      font-weight: 400;
+      letter-spacing: -0.2px;
+      max-width: 520px;
     }
 
     .gallery {
@@ -126,7 +123,7 @@
       transform: scale(1);
     }
 
-    /* CLOSE BUTTON */
+    /* CLOSE */
     .close {
       position: absolute;
       top: 20px;
@@ -134,11 +131,6 @@
       font-size: 28px;
       cursor: pointer;
       user-select: none;
-      color: #111;
-    }
-
-    .close:hover {
-      opacity: 0.5;
     }
 
     /* NAV */
@@ -175,9 +167,10 @@
   <h1>IL TUO NOME</h1>
   <h2>FOTOGRAFIA</h2>
 
-  <div class="desc-title">Benvenuti nel mio portfolio</div>
-  <div class="desc-text">
-    Una selezione di immagini che raccontano il mio sguardo sul mondo.
+  <div class="desc">
+    benvenuti nel mio portfolio<br>
+    una selezione di immagini<br>
+    che raccontano il mio sguardo sul mondo
   </div>
 </header>
 
@@ -214,6 +207,7 @@
 
   let currentIndex = 0;
 
+  /* SCROLL ANIMATION */
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if(entry.isIntersecting){
@@ -268,6 +262,24 @@
     if(e.key === "Escape") closeLightbox();
     if(e.key === "ArrowRight") nextImage();
     if(e.key === "ArrowLeft") prevImage();
+  });
+
+  /* SWIPE MOBILE */
+  let startX = 0;
+
+  lightbox.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+  });
+
+  lightbox.addEventListener("touchend", (e) => {
+    let endX = e.changedTouches[0].clientX;
+
+    let diff = startX - endX;
+
+    if(Math.abs(diff) > 50){
+      if(diff > 0) nextImage();
+      else prevImage();
+    }
   });
 </script>
 
