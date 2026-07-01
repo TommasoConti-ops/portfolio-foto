@@ -18,7 +18,7 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: #ffffff;
+      background: #fff;
       color: #111;
       overflow-x: hidden;
     }
@@ -65,8 +65,16 @@
       width: 100%;
       margin-bottom: 15px;
       border-radius: 6px;
-      transition: transform 0.3s ease, opacity 0.3s ease;
       cursor: pointer;
+
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease;
+    }
+
+    .gallery img.show {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .gallery img:hover {
@@ -81,28 +89,41 @@
       color: #888;
     }
 
+    /* LIGHTBOX */
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.92);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+    }
+
+    .lightbox.active {
+      display: flex;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 900px) {
-      .gallery {
-        column-count: 2;
-      }
-
-      h1 {
-        font-size: 42px;
-      }
+      .gallery { column-count: 2; }
+      h1 { font-size: 42px; }
     }
 
     @media (max-width: 600px) {
-      .gallery {
-        column-count: 1;
-      }
-
-      h1 {
-        font-size: 34px;
-      }
+      .gallery { column-count: 1; }
+      h1 { font-size: 34px; }
     }
 
-    /* smooth scroll */
     html {
       scroll-behavior: smooth;
     }
@@ -111,34 +132,69 @@
 
 <body>
 
-  <header>
-    <h1>Tommaso Conti</h1>
-    <h2>FOTOGRAFIA</h2>
-    <p>Benvenuti nel mio portfolio. Una selezione di immagini che raccontano il mio sguardo sul mondo.</p>
-  </header>
+<header>
+  <h1>IL TUO NOME</h1>
+  <h2>FOTOGRAFIA</h2>
+  <p>Benvenuti nel mio portfolio. Una selezione di immagini che raccontano il mio sguardo sul mondo.</p>
+</header>
 
-  <section class="gallery">
+<section class="gallery">
 
-    <!-- FOTO GIÀ CARICATE -->
-    <img src="IMG_1263_VSCO.jpeg" alt="foto 1">
-    <img src="Paris in nigg*s.JPG" alt="foto 2">
-    <img src="FullSizeRender_VSCO.jpeg" alt="foto 3">
-    <img src="IMG_3066.jpeg" alt="foto 4">
-    <img src="Broooo.JPG" alt="foto 5">
-    <img src="Fragolina.JPG" alt="foto 6">
-    
+  <!-- FOTO -->
+  <img src="IMG_1263_VSCO.jpeg" loading="lazy" alt="">
+  <img src="IMG_2924.jpeg" loading="lazy" alt="">
 
-    <!-- AGGIUNGI QUI LE ALTRE 18 FOTO -->
-    <!-- ESEMPIO:
-    <img src="foto3.jpeg">
-    <img src="foto4.jpeg">
-    -->
+  <!-- AGGIUNGI ALTRE FOTO QUI -->
+  <!-- <img src="foto3.jpg" loading="lazy"> -->
 
-  </section>
+</section>
 
-  <footer>
-    ©️ 2026 – Portfolio Fotografico
-  </footer>
+<footer>
+  © 2026 – Portfolio Fotografico
+</footer>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
+
+  const images = document.querySelectorAll(".gallery img");
+
+  // animazione scroll (fade-in)
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("show");
+      }
+    });
+  }, { threshold: 0.1 });
+
+  images.forEach(img => {
+    observer.observe(img);
+
+    // click per lightbox
+    img.addEventListener("click", () => {
+      lightbox.classList.add("active");
+      lightboxImg.src = img.src;
+    });
+  });
+
+  // chiudi lightbox cliccando fuori
+  lightbox.addEventListener("click", () => {
+    lightbox.classList.remove("active");
+  });
+
+  // chiudi con ESC
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      lightbox.classList.remove("active");
+    }
+  });
+</script>
 
 </body>
 </html>
