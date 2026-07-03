@@ -8,11 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -31,11 +27,7 @@
       padding: 20px;
     }
 
-    h1 {
-      font-size: 64px;
-      font-weight: 600;
-      letter-spacing: -2px;
-    }
+    h1 { font-size: 64px; font-weight: 600; letter-spacing: -2px; }
 
     h2 {
       margin-top: 10px;
@@ -45,14 +37,12 @@
       color: #666;
     }
 
-    /* DESCRIZIONE */
     .desc {
       margin-top: 25px;
       font-size: 18px;
       color: #444;
       line-height: 1.6;
       font-weight: 400;
-      letter-spacing: -0.2px;
       max-width: 520px;
     }
 
@@ -67,7 +57,6 @@
       margin-bottom: 15px;
       border-radius: 6px;
       cursor: pointer;
-
       opacity: 0;
       transform: translateY(20px);
       transition: all 0.6s ease;
@@ -99,7 +88,6 @@
       justify-content: center;
       align-items: center;
       z-index: 999;
-
       opacity: 0;
       visibility: hidden;
       transition: all 0.25s ease;
@@ -117,13 +105,13 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.15);
       transform: scale(0.95);
       transition: transform 0.25s ease;
+      cursor: zoom-in;
     }
 
     .lightbox.active img {
       transform: scale(1);
     }
 
-    /* CLOSE */
     .close {
       position: absolute;
       top: 20px;
@@ -133,7 +121,6 @@
       user-select: none;
     }
 
-    /* NAV */
     .nav {
       position: absolute;
       top: 50%;
@@ -147,7 +134,6 @@
     .prev { left: 20px; }
     .next { right: 20px; }
 
-    /* RESPONSIVE */
     @media (max-width: 900px) {
       .gallery { column-count: 2; }
       h1 { font-size: 42px; }
@@ -174,7 +160,6 @@
 </header>
 
 <section class="gallery">
-
   <img src="IMG_1263_VSCO.jpeg" loading="lazy">
   <img src="IMG_1279_VSCO.jpeg" loading="lazy">
   <img src="IMG_1256_VSCO.jpeg" loading="lazy">
@@ -190,7 +175,6 @@
   <img src="IMG_1371_VSCO.jpeg" loading="lazy">
   <img src="IMG_1461_VSCO.jpeg" loading="lazy">
   <img src="IMG_1109_VSCO_VSCO.JPG" loading="lazy">
-
 </section>
 
 <footer>
@@ -199,12 +183,9 @@
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox">
-
   <div class="close" id="closeBtn">✕</div>
-
   <div class="nav prev" id="prev">&#10094;</div>
   <div class="nav next" id="next">&#10095;</div>
-
   <img id="lightbox-img" src="">
 </div>
 
@@ -219,7 +200,7 @@
 
   let currentIndex = 0;
 
-  /* SCROLL ANIMATION */
+  /* ANIMAZIONE SCROLL */
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if(entry.isIntersecting){
@@ -248,6 +229,9 @@
 
   function closeLightbox(){
     lightbox.classList.remove("active");
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
   }
 
   function nextImage(){
@@ -260,9 +244,23 @@
     updateImage();
   }
 
+  /* FULLSCREEN */
+  function openFullscreen() {
+    if (lightboxImg.requestFullscreen) {
+      lightboxImg.requestFullscreen();
+    } else if (lightboxImg.webkitRequestFullscreen) {
+      lightboxImg.webkitRequestFullscreen();
+    } else if (lightboxImg.msRequestFullscreen) {
+      lightboxImg.msRequestFullscreen();
+    }
+  }
+
   closeBtn.addEventListener("click", closeLightbox);
   prevBtn.addEventListener("click", prevImage);
   nextBtn.addEventListener("click", nextImage);
+
+  /* click immagine = fullscreen */
+  lightboxImg.addEventListener("click", openFullscreen);
 
   lightbox.addEventListener("click", (e) => {
     if(e.target === lightbox) closeLightbox();
@@ -285,7 +283,6 @@
 
   lightbox.addEventListener("touchend", (e) => {
     let endX = e.changedTouches[0].clientX;
-
     let diff = startX - endX;
 
     if(Math.abs(diff) > 50){
