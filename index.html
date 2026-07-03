@@ -8,124 +8,91 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: Inter, sans-serif;
   background: #fff;
-  color: #111;
-  overflow-x: hidden;
+  color:#111;
 }
 
-/* HEADER (NON TOCCATO) */
+/* HEADER IDENTICO */
 header {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 20px;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:20px;
 }
 
-h1 {
-  font-size: 64px;
-  font-weight: 600;
-  letter-spacing: -2px;
-}
-
-h2 {
-  margin-top: 10px;
-  font-size: 18px;
-  font-weight: 300;
-  letter-spacing: 4px;
-  color: #666;
-}
+h1 { font-size:64px; font-weight:600; }
+h2 { font-size:18px; letter-spacing:4px; color:#666; margin-top:10px; }
 
 .desc {
-  margin-top: 25px;
-  font-size: 18px;
-  color: #444;
-  line-height: 1.6;
-  max-width: 520px;
+  margin-top:25px;
+  max-width:520px;
+  font-size:18px;
+  color:#444;
 }
 
-/* GALLERY (solo sistemata disposizione) */
+/* 🔥 GALLERY DIVERSA (più “portfolio”) */
 .gallery {
-  column-count: 3;
-  column-gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   padding: 40px;
 }
 
 .gallery img {
-  width: 100%;
-  margin-bottom: 15px;
-  border-radius: 6px;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: 0.5s ease;
+  width:100%;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.3s ease;
 }
 
-.gallery img.show {
-  opacity: 1;
-  transform: translateY(0);
+.gallery img:hover {
+  transform: scale(1.02);
 }
 
-/* LIGHTBOX */
+/* 🔥 LIGHTBOX COMPLETAMENTE DIVERSA */
 .lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-  opacity: 0;
-  visibility: hidden;
-  transition: 0.25s ease;
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  opacity:0;
+  visibility:hidden;
+  transition:0.2s ease;
 }
 
 .lightbox.active {
-  opacity: 1;
-  visibility: visible;
+  opacity:1;
+  visibility:visible;
 }
 
-/* 🔥 IMPORTANTE: niente zoom, SOLO fullscreen visivo */
 .lightbox img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 0;
-  transition: none;
+  max-width:95%;
+  max-height:95%;
+  object-fit:contain;
 }
 
-/* NAV */
-.nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 40px;
-  color: white;
-  cursor: pointer;
-  user-select: none;
+/* UI MINIMA */
+.close, .nav {
+  position:absolute;
+  color:#fff;
+  font-size:28px;
+  cursor:pointer;
+  user-select:none;
 }
 
-.prev { left: 20px; }
-.next { right: 20px; }
+.close { top:20px; right:25px; }
+.prev { left:20px; top:50%; transform:translateY(-50%); }
+.next { right:20px; top:50%; transform:translateY(-50%); }
 
-.close {
-  position: absolute;
-  top: 20px;
-  right: 25px;
-  font-size: 28px;
-  color: white;
-  cursor: pointer;
-}
 </style>
 </head>
 
@@ -134,7 +101,6 @@ h2 {
 <header>
   <h1>Tommaso Conti</h1>
   <h2>FOTOGRAFIA</h2>
-
   <div class="desc">
     una selezione di immagini<br>
     che raccontano il mio sguardo sul mondo
@@ -182,69 +148,51 @@ const closeBtn = document.getElementById("closeBtn");
 const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 
-let currentIndex = 0;
+let index = 0;
 
-/* scroll animation */
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if(e.isIntersecting) e.target.classList.add("show");
+images.forEach((img,i)=>{
+  img.addEventListener("click",()=>{
+    index=i;
+    open();
   });
 });
 
-images.forEach((img, i) => {
-  observer.observe(img);
-
-  img.addEventListener("click", () => {
-    currentIndex = i;
-    openLightbox();
-  });
-});
-
-function openLightbox(){
+function open(){
   lightbox.classList.add("active");
-  updateImage();
+  update();
 }
 
-function updateImage(){
-  lightboxImg.src = images[currentIndex].src;
+function update(){
+  lightboxImg.src = images[index].src;
 }
 
-function closeLightbox(){
+function close(){
   lightbox.classList.remove("active");
 }
 
-function nextImage(){
-  currentIndex = (currentIndex + 1) % images.length;
-  updateImage();
+function next(){
+  index = (index+1)%images.length;
+  update();
 }
 
-function prevImage(){
-  currentIndex = (currentIndex - 1 + images.length) % images.length;
-  updateImage();
+function prev(){
+  index = (index-1+images.length)%images.length;
+  update();
 }
 
-closeBtn.addEventListener("click", closeLightbox);
-nextBtn.addEventListener("click", nextImage);
-prevBtn.addEventListener("click", prevImage);
+closeBtn.onclick = close;
+nextBtn.onclick = next;
+prevBtn.onclick = prev;
 
-lightbox.addEventListener("click", (e) => {
-  if(e.target === lightbox) closeLightbox();
-});
+lightbox.onclick = e=>{
+  if(e.target===lightbox) close();
+};
 
-/* swipe */
-let startX = 0;
-
-lightbox.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-});
-
-lightbox.addEventListener("touchend", e => {
-  let diff = startX - e.changedTouches[0].clientX;
-
-  if(Math.abs(diff) > 50){
-    if(diff > 0) nextImage();
-    else prevImage();
-  }
+document.addEventListener("keydown",e=>{
+  if(!lightbox.classList.contains("active")) return;
+  if(e.key==="Escape") close();
+  if(e.key==="ArrowRight") next();
+  if(e.key==="ArrowLeft") prev();
 });
 </script>
 
