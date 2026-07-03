@@ -16,7 +16,7 @@ body {
   color:#111;
 }
 
-/* HEADER IDENTICO */
+/* HEADER */
 header {
   height:100vh;
   display:flex;
@@ -27,22 +27,38 @@ header {
   padding:20px;
 }
 
-h1 { font-size:64px; font-weight:600; }
-h2 { font-size:18px; letter-spacing:4px; color:#666; margin-top:10px; }
-
-.desc {
-  margin-top:25px;
-  max-width:520px;
-  font-size:18px;
-  color:#444;
+/* 👇 NOME PIÙ PICCOLO */
+h1 {
+  font-size:42px;
+  font-weight:700;
+  color:#000;
 }
 
-/* 🔥 GALLERY DIVERSA (più “portfolio”) */
+/* FOTOGRAFIA PICCOLO */
+h2 {
+  font-size:14px;
+  letter-spacing:4px;
+  color:#666;
+  margin-top:8px;
+  font-weight:400;
+}
+
+/* 👇 SOLO 2 RIGHE CENTRATE */
+.desc {
+  margin-top:20px;
+  font-size:18px;
+  color:#444;
+  max-width:420px;
+  text-align:center;
+  line-height:1.4;
+}
+
+/* GRID FOTO */
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  padding: 40px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  padding:40px;
 }
 
 .gallery img {
@@ -53,14 +69,14 @@ h2 { font-size:18px; letter-spacing:4px; color:#666; margin-top:10px; }
 }
 
 .gallery img:hover {
-  transform: scale(1.02);
+  transform:scale(1.02);
 }
 
-/* 🔥 LIGHTBOX COMPLETAMENTE DIVERSA */
+/* LIGHTBOX (BIANCO COME CHIESTO) */
 .lightbox {
   position:fixed;
   inset:0;
-  background:#000;
+  background:#fff;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -74,19 +90,30 @@ h2 { font-size:18px; letter-spacing:4px; color:#666; margin-top:10px; }
   visibility:visible;
 }
 
+/* BASE IMAGE */
 .lightbox img {
   max-width:95%;
   max-height:95%;
   object-fit:contain;
+  transition:transform 0.25s ease;
+  cursor:zoom-in;
 }
 
-/* UI MINIMA */
+/* FULLSCREEN VISIVO */
+.lightbox.zoomed img {
+  max-width:100%;
+  max-height:100%;
+  transform:scale(1);
+  cursor:zoom-out;
+}
+
+/* NAV */
 .close, .nav {
   position:absolute;
-  color:#fff;
   font-size:28px;
   cursor:pointer;
   user-select:none;
+  color:#111;
 }
 
 .close { top:20px; right:25px; }
@@ -101,6 +128,7 @@ h2 { font-size:18px; letter-spacing:4px; color:#666; margin-top:10px; }
 <header>
   <h1>Tommaso Conti</h1>
   <h2>FOTOGRAFIA</h2>
+
   <div class="desc">
     una selezione di immagini<br>
     che raccontano il mio sguardo sul mondo
@@ -149,7 +177,9 @@ const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 
 let index = 0;
+let zoomed = false;
 
+/* OPEN */
 images.forEach((img,i)=>{
   img.addEventListener("click",()=>{
     index=i;
@@ -164,10 +194,12 @@ function open(){
 
 function update(){
   lightboxImg.src = images[index].src;
+  resetZoom();
 }
 
 function close(){
   lightbox.classList.remove("active");
+  resetZoom();
 }
 
 function next(){
@@ -180,6 +212,19 @@ function prev(){
   update();
 }
 
+function resetZoom(){
+  zoomed = false;
+  lightbox.classList.remove("zoomed");
+}
+
+/* CLICK = FULLSCREEN VISIVO TOGGLE */
+lightboxImg.addEventListener("click",(e)=>{
+  e.stopPropagation();
+  zoomed = !zoomed;
+  lightbox.classList.toggle("zoomed");
+});
+
+/* EVENTS */
 closeBtn.onclick = close;
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
@@ -188,8 +233,26 @@ lightbox.onclick = e=>{
   if(e.target===lightbox) close();
 };
 
+/* SWIPE */
+let startX=0;
+
+lightbox.addEventListener("touchstart",e=>{
+  startX = e.touches[0].clientX;
+});
+
+lightbox.addEventListener("touchend",e=>{
+  let diff = startX - e.changedTouches[0].clientX;
+
+  if(Math.abs(diff)>50){
+    if(diff>0) next();
+    else prev();
+  }
+});
+
+/* KEYBOARD */
 document.addEventListener("keydown",e=>{
   if(!lightbox.classList.contains("active")) return;
+
   if(e.key==="Escape") close();
   if(e.key==="ArrowRight") next();
   if(e.key==="ArrowLeft") prev();
