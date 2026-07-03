@@ -21,7 +21,7 @@ body {
   overflow-x: hidden;
 }
 
-/* HEADER */
+/* HEADER (NON TOCCATO) */
 header {
   height: 100vh;
   display: flex;
@@ -35,24 +35,26 @@ header {
 h1 {
   font-size: 64px;
   font-weight: 600;
+  letter-spacing: -2px;
 }
 
 h2 {
+  margin-top: 10px;
   font-size: 18px;
   font-weight: 300;
   letter-spacing: 4px;
   color: #666;
-  margin-top: 10px;
 }
 
 .desc {
   margin-top: 25px;
   font-size: 18px;
   color: #444;
+  line-height: 1.6;
   max-width: 520px;
 }
 
-/* GALLERY */
+/* GALLERY (solo sistemata disposizione) */
 .gallery {
   column-count: 3;
   column-gap: 15px;
@@ -93,18 +95,13 @@ h2 {
   visibility: visible;
 }
 
+/* 🔥 IMPORTANTE: niente zoom, SOLO fullscreen visivo */
 .lightbox img {
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 8px;
-  transition: transform 0.25s ease;
-  cursor: zoom-in;
-  transform-origin: center;
-}
-
-.lightbox.zoomed img {
-  transform: scale(2);
-  cursor: zoom-out;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+  transition: none;
 }
 
 /* NAV */
@@ -137,20 +134,35 @@ h2 {
 <header>
   <h1>Tommaso Conti</h1>
   <h2>FOTOGRAFIA</h2>
-  <div class="desc">una selezione di immagini</div>
+
+  <div class="desc">
+    una selezione di immagini<br>
+    che raccontano il mio sguardo sul mondo
+  </div>
 </header>
 
 <section class="gallery">
+
   <img src="IMG_1263_VSCO.jpeg">
   <img src="IMG_1279_VSCO.jpeg">
   <img src="IMG_1256_VSCO.jpeg">
   <img src="IMG_2924.jpeg">
   <img src="Broooo.JPG">
   <img src="FullSizeRender_VSCO.jpeg">
+  <img src="PARISinNigg*s.JPG">
+  <img src="IMG_3066.jpeg">
+  <img src="Fragolina.JPG">
+  <img src="IMG_2758_VSCO.JPG">
+  <img src="Dolcev.JPG">
+  <img src="IMG_1303_VSCO.jpeg">
+  <img src="IMG_1371_VSCO.jpeg">
+  <img src="IMG_1461_VSCO.jpeg">
+  <img src="IMG_1109_VSCO_VSCO.JPG">
+
 </section>
 
 <footer style="text-align:center; padding:40px; color:#888;">
-© 2026
+© 2026 – Portfolio Fotografico
 </footer>
 
 <!-- LIGHTBOX -->
@@ -171,9 +183,8 @@ const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 
 let currentIndex = 0;
-let isZoomed = false;
 
-/* scroll reveal */
+/* scroll animation */
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => {
     if(e.isIntersecting) e.target.classList.add("show");
@@ -196,12 +207,10 @@ function openLightbox(){
 
 function updateImage(){
   lightboxImg.src = images[currentIndex].src;
-  resetZoom();
 }
 
 function closeLightbox(){
   lightbox.classList.remove("active");
-  resetZoom();
 }
 
 function nextImage(){
@@ -214,36 +223,12 @@ function prevImage(){
   updateImage();
 }
 
-function resetZoom(){
-  isZoomed = false;
-  lightbox.classList.remove("zoomed");
-}
-
-/* zoom toggle */
-lightboxImg.addEventListener("click", (e) => {
-  e.stopPropagation();
-  isZoomed = !isZoomed;
-  lightbox.classList.toggle("zoomed");
-});
-
-/* close */
 closeBtn.addEventListener("click", closeLightbox);
-
-lightbox.addEventListener("click", (e) => {
-  if(e.target === lightbox) closeLightbox();
-});
-
-/* nav */
 nextBtn.addEventListener("click", nextImage);
 prevBtn.addEventListener("click", prevImage);
 
-/* keyboard */
-document.addEventListener("keydown", e => {
-  if(!lightbox.classList.contains("active")) return;
-
-  if(e.key === "Escape") closeLightbox();
-  if(e.key === "ArrowRight") nextImage();
-  if(e.key === "ArrowLeft") prevImage();
+lightbox.addEventListener("click", (e) => {
+  if(e.target === lightbox) closeLightbox();
 });
 
 /* swipe */
