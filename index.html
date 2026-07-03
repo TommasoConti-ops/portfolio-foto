@@ -1,174 +1,135 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Portfolio Fotografico</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Portfolio Fotografico</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #fff;
-      color: #111;
-      overflow-x: hidden;
-    }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  color: #111;
+  overflow-x: hidden;
+}
 
-    header {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 20px;
-    }
+/* HEADER */
+header {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
 
-    h1 {
-      font-size: 64px;
-      font-weight: 600;
-      letter-spacing: -2px;
-    }
+h1 {
+  font-size: 64px;
+  font-weight: 600;
+}
 
-    h2 {
-      margin-top: 10px;
-      font-size: 18px;
-      font-weight: 300;
-      letter-spacing: 4px;
-      color: #666;
-    }
+h2 {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 4px;
+  color: #666;
+  margin-top: 10px;
+}
 
-    .desc {
-      margin-top: 25px;
-      font-size: 18px;
-      color: #444;
-      line-height: 1.6;
-      max-width: 520px;
-    }
+.desc {
+  margin-top: 25px;
+  font-size: 18px;
+  color: #444;
+  max-width: 520px;
+}
 
-    .gallery {
-      column-count: 3;
-      column-gap: 15px;
-      padding: 40px;
-    }
+/* GALLERY */
+.gallery {
+  column-count: 3;
+  column-gap: 15px;
+  padding: 40px;
+}
 
-    .gallery img {
-      width: 100%;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.6s ease;
-    }
+.gallery img {
+  width: 100%;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: 0.5s ease;
+}
 
-    .gallery img.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
+.gallery img.show {
+  opacity: 1;
+  transform: translateY(0);
+}
 
-    .gallery img:hover {
-      transform: scale(1.02);
-      opacity: 0.95;
-    }
+/* LIGHTBOX */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.25s ease;
+}
 
-    footer {
-      text-align: center;
-      padding: 50px 20px;
-      font-size: 14px;
-      color: #888;
-    }
+.lightbox.active {
+  opacity: 1;
+  visibility: visible;
+}
 
-    /* LIGHTBOX */
-    .lightbox {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.98);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.25s ease;
-    }
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  transition: transform 0.25s ease;
+  cursor: zoom-in;
+  transform-origin: center;
+}
 
-    .lightbox.active {
-      opacity: 1;
-      visibility: visible;
-    }
+.lightbox.zoomed img {
+  transform: scale(2);
+  cursor: zoom-out;
+}
 
-    .lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 8px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-      transform: scale(0.95);
-      transition: all 0.25s ease;
-      cursor: zoom-in;
-    }
+/* NAV */
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 40px;
+  color: white;
+  cursor: pointer;
+  user-select: none;
+}
 
-    .lightbox.active img {
-      transform: scale(1);
-    }
+.prev { left: 20px; }
+.next { right: 20px; }
 
-    /* ZOOM FULLSCREEN VISIVO */
-    .lightbox.zoomed {
-      background: black;
-    }
-
-    .lightbox.zoomed img {
-      width: 100vw;
-      height: 100vh;
-      max-width: 100vw;
-      max-height: 100vh;
-      object-fit: contain;
-      border-radius: 0;
-      transform: scale(1);
-    }
-
-    .close {
-      position: absolute;
-      top: 20px;
-      right: 25px;
-      font-size: 28px;
-      cursor: pointer;
-      user-select: none;
-      color: #000;
-    }
-
-    .nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 40px;
-      cursor: pointer;
-      user-select: none;
-      padding: 10px;
-      color: #000;
-    }
-
-    .prev { left: 20px; }
-    .next { right: 20px; }
-
-    @media (max-width: 900px) {
-      .gallery { column-count: 2; }
-      h1 { font-size: 42px; }
-    }
-
-    @media (max-width: 600px) {
-      .gallery { column-count: 1; }
-      h1 { font-size: 34px; }
-    }
-  </style>
+.close {
+  position: absolute;
+  top: 20px;
+  right: 25px;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+}
+</style>
 </head>
 
 <body>
@@ -176,10 +137,7 @@
 <header>
   <h1>Tommaso Conti</h1>
   <h2>FOTOGRAFIA</h2>
-  <div class="desc">
-    una selezione di immagini<br>
-    che raccontano il mio sguardo sul mondo
-  </div>
+  <div class="desc">una selezione di immagini</div>
 </header>
 
 <section class="gallery">
@@ -189,14 +147,10 @@
   <img src="IMG_2924.jpeg">
   <img src="Broooo.JPG">
   <img src="FullSizeRender_VSCO.jpeg">
-  <img src="PARISinNigg*s.JPG">
-  <img src="IMG_3066.jpeg">
-  <img src="Fragolina.JPG">
-  <img src="IMG_2758_VSCO.JPG">
 </section>
 
-<footer>
-  © 2026 – Portfolio Fotografico
+<footer style="text-align:center; padding:40px; color:#888;">
+© 2026
 </footer>
 
 <!-- LIGHTBOX -->
@@ -204,94 +158,109 @@
   <div class="close" id="closeBtn">✕</div>
   <div class="nav prev" id="prev">&#10094;</div>
   <div class="nav next" id="next">&#10095;</div>
-  <img id="lightbox-img" src="">
+  <img id="lightbox-img">
 </div>
 
 <script>
-  const images = document.querySelectorAll(".gallery img");
-  const lightbox = document.getElementById("lightbox");
-  const lightboxImg = document.getElementById("lightbox-img");
+const images = document.querySelectorAll(".gallery img");
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
 
-  const closeBtn = document.getElementById("closeBtn");
-  const prevBtn = document.getElementById("prev");
-  const nextBtn = document.getElementById("next");
+const closeBtn = document.getElementById("closeBtn");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
 
-  let currentIndex = 0;
+let currentIndex = 0;
+let isZoomed = false;
 
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if(entry.isIntersecting){
-        entry.target.classList.add("show");
-      }
-    });
-  }, { threshold: 0.1 });
-
-  images.forEach((img, index) => {
-    observer.observe(img);
-
-    img.addEventListener("click", () => {
-      currentIndex = index;
-      lightbox.classList.add("active");
-      lightbox.classList.remove("zoomed");
-      updateImage();
-    });
+/* scroll reveal */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) e.target.classList.add("show");
   });
+});
 
-  function updateImage(){
-    lightboxImg.src = images[currentIndex].src;
+images.forEach((img, i) => {
+  observer.observe(img);
+
+  img.addEventListener("click", () => {
+    currentIndex = i;
+    openLightbox();
+  });
+});
+
+function openLightbox(){
+  lightbox.classList.add("active");
+  updateImage();
+}
+
+function updateImage(){
+  lightboxImg.src = images[currentIndex].src;
+  resetZoom();
+}
+
+function closeLightbox(){
+  lightbox.classList.remove("active");
+  resetZoom();
+}
+
+function nextImage(){
+  currentIndex = (currentIndex + 1) % images.length;
+  updateImage();
+}
+
+function prevImage(){
+  currentIndex = (currentIndex - 1 + images.length) % images.length;
+  updateImage();
+}
+
+function resetZoom(){
+  isZoomed = false;
+  lightbox.classList.remove("zoomed");
+}
+
+/* zoom toggle */
+lightboxImg.addEventListener("click", (e) => {
+  e.stopPropagation();
+  isZoomed = !isZoomed;
+  lightbox.classList.toggle("zoomed");
+});
+
+/* close */
+closeBtn.addEventListener("click", closeLightbox);
+
+lightbox.addEventListener("click", (e) => {
+  if(e.target === lightbox) closeLightbox();
+});
+
+/* nav */
+nextBtn.addEventListener("click", nextImage);
+prevBtn.addEventListener("click", prevImage);
+
+/* keyboard */
+document.addEventListener("keydown", e => {
+  if(!lightbox.classList.contains("active")) return;
+
+  if(e.key === "Escape") closeLightbox();
+  if(e.key === "ArrowRight") nextImage();
+  if(e.key === "ArrowLeft") prevImage();
+});
+
+/* swipe */
+let startX = 0;
+
+lightbox.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+
+lightbox.addEventListener("touchend", e => {
+  let diff = startX - e.changedTouches[0].clientX;
+
+  if(Math.abs(diff) > 50){
+    if(diff > 0) nextImage();
+    else prevImage();
   }
-
-  function closeLightbox(){
-    lightbox.classList.remove("active");
-    lightbox.classList.remove("zoomed");
-  }
-
-  function nextImage(){
-    currentIndex = (currentIndex + 1) % images.length;
-    updateImage();
-  }
-
-  function prevImage(){
-    currentIndex = (currentIndex - 1 + images.length) % images.length;
-    updateImage();
-  }
-
-  closeBtn.addEventListener("click", closeLightbox);
-  prevBtn.addEventListener("click", prevImage);
-  nextBtn.addEventListener("click", nextImage);
-
-  lightbox.addEventListener("click", (e) => {
-    if(e.target === lightbox) closeLightbox();
-  });
-
-  document.addEventListener("keydown", (e) => {
-    if(!lightbox.classList.contains("active")) return;
-
-    if(e.key === "Escape") closeLightbox();
-    if(e.key === "ArrowRight") nextImage();
-    if(e.key === "ArrowLeft") prevImage();
-  });
-
-  /* SWIPE */
-  let startX = 0;
-
-  lightbox.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-  });
-
-  lightbox.addEventListener("touchend", (e) => {
-    let diff = startX - e.changedTouches[0].clientX;
-
-    if(Math.abs(diff) > 50){
-      if(diff > 0) nextImage();
-      else prevImage();
-    }
-  });
-
-  /* CLICK = ZOOM FULLSCREEN VISIVO */
-  lightboxImg.addEventListener("click", () => {
-    lightbox.classList.toggle("zoomed");
-  });
+});
 </script>
 
 </body>
