@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -8,7 +9,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -27,7 +32,11 @@
       padding: 20px;
     }
 
-    h1 { font-size: 64px; font-weight: 600; letter-spacing: -2px; }
+    h1 {
+      font-size: 64px;
+      font-weight: 600;
+      letter-spacing: -2px;
+    }
 
     h2 {
       margin-top: 10px;
@@ -42,7 +51,6 @@
       font-size: 18px;
       color: #444;
       line-height: 1.6;
-      font-weight: 400;
       max-width: 520px;
     }
 
@@ -104,11 +112,26 @@
       border-radius: 8px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.15);
       transform: scale(0.95);
-      transition: transform 0.25s ease;
+      transition: all 0.25s ease;
       cursor: zoom-in;
     }
 
     .lightbox.active img {
+      transform: scale(1);
+    }
+
+    /* ZOOM FULLSCREEN VISIVO */
+    .lightbox.zoomed {
+      background: black;
+    }
+
+    .lightbox.zoomed img {
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+      border-radius: 0;
       transform: scale(1);
     }
 
@@ -119,6 +142,7 @@
       font-size: 28px;
       cursor: pointer;
       user-select: none;
+      color: #000;
     }
 
     .nav {
@@ -129,6 +153,7 @@
       cursor: pointer;
       user-select: none;
       padding: 10px;
+      color: #000;
     }
 
     .prev { left: 20px; }
@@ -142,7 +167,6 @@
     @media (max-width: 600px) {
       .gallery { column-count: 1; }
       h1 { font-size: 34px; }
-      .nav { font-size: 30px; }
     }
   </style>
 </head>
@@ -152,7 +176,6 @@
 <header>
   <h1>Tommaso Conti</h1>
   <h2>FOTOGRAFIA</h2>
-
   <div class="desc">
     una selezione di immagini<br>
     che raccontano il mio sguardo sul mondo
@@ -160,21 +183,16 @@
 </header>
 
 <section class="gallery">
-  <img src="IMG_1263_VSCO.jpeg" loading="lazy">
-  <img src="IMG_1279_VSCO.jpeg" loading="lazy">
-  <img src="IMG_1256_VSCO.jpeg" loading="lazy">
-  <img src="IMG_2924.jpeg" loading="lazy">
-  <img src="Broooo.JPG" loading="lazy">
-  <img src="FullSizeRender_VSCO.jpeg" loading="lazy">
-  <img src="PARISinNigg*s.JPG" loading="lazy">
-  <img src="IMG_3066.jpeg" loading="lazy">
-  <img src="Fragolina.JPG" loading="lazy">
-  <img src="IMG_2758_VSCO.JPG" loading="lazy">
-  <img src="Dolcev.JPG" loading="lazy">
-  <img src="IMG_1303_VSCO.jpeg" loading="lazy">
-  <img src="IMG_1371_VSCO.jpeg" loading="lazy">
-  <img src="IMG_1461_VSCO.jpeg" loading="lazy">
-  <img src="IMG_1109_VSCO_VSCO.JPG" loading="lazy">
+  <img src="IMG_1263_VSCO.jpeg">
+  <img src="IMG_1279_VSCO.jpeg">
+  <img src="IMG_1256_VSCO.jpeg">
+  <img src="IMG_2924.jpeg">
+  <img src="Broooo.JPG">
+  <img src="FullSizeRender_VSCO.jpeg">
+  <img src="PARISinNigg*s.JPG">
+  <img src="IMG_3066.jpeg">
+  <img src="Fragolina.JPG">
+  <img src="IMG_2758_VSCO.JPG">
 </section>
 
 <footer>
@@ -200,7 +218,6 @@
 
   let currentIndex = 0;
 
-  /* ANIMAZIONE SCROLL */
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if(entry.isIntersecting){
@@ -213,15 +230,12 @@
     observer.observe(img);
 
     img.addEventListener("click", () => {
-      openLightbox(index);
+      currentIndex = index;
+      lightbox.classList.add("active");
+      lightbox.classList.remove("zoomed");
+      updateImage();
     });
   });
-
-  function openLightbox(index){
-    currentIndex = index;
-    lightbox.classList.add("active");
-    updateImage();
-  }
 
   function updateImage(){
     lightboxImg.src = images[currentIndex].src;
@@ -229,9 +243,7 @@
 
   function closeLightbox(){
     lightbox.classList.remove("active");
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    }
+    lightbox.classList.remove("zoomed");
   }
 
   function nextImage(){
@@ -244,23 +256,9 @@
     updateImage();
   }
 
-  /* FULLSCREEN */
-  function openFullscreen() {
-    if (lightboxImg.requestFullscreen) {
-      lightboxImg.requestFullscreen();
-    } else if (lightboxImg.webkitRequestFullscreen) {
-      lightboxImg.webkitRequestFullscreen();
-    } else if (lightboxImg.msRequestFullscreen) {
-      lightboxImg.msRequestFullscreen();
-    }
-  }
-
   closeBtn.addEventListener("click", closeLightbox);
   prevBtn.addEventListener("click", prevImage);
   nextBtn.addEventListener("click", nextImage);
-
-  /* click immagine = fullscreen */
-  lightboxImg.addEventListener("click", openFullscreen);
 
   lightbox.addEventListener("click", (e) => {
     if(e.target === lightbox) closeLightbox();
@@ -274,7 +272,7 @@
     if(e.key === "ArrowLeft") prevImage();
   });
 
-  /* SWIPE MOBILE */
+  /* SWIPE */
   let startX = 0;
 
   lightbox.addEventListener("touchstart", (e) => {
@@ -282,19 +280,22 @@
   });
 
   lightbox.addEventListener("touchend", (e) => {
-    let endX = e.changedTouches[0].clientX;
-    let diff = startX - endX;
+    let diff = startX - e.changedTouches[0].clientX;
 
     if(Math.abs(diff) > 50){
       if(diff > 0) nextImage();
       else prevImage();
     }
   });
+
+  /* CLICK = ZOOM FULLSCREEN VISIVO */
+  lightboxImg.addEventListener("click", () => {
+    lightbox.classList.toggle("zoomed");
+  });
 </script>
 
 </body>
 </html>
-
 
 
 
