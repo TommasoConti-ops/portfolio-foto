@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0"/>
 <title>Portfolio Fotografico</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -51,105 +51,127 @@ h2 {
   line-height:1.4;
 }
 
-/* GRID FOTO */
+/* GRIGLIA STILE PINTEREST RIPRISTINATA */
 .gallery {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  padding:40px;
+  columns: 3;
+  column-gap: 16px;
+  padding: 40px;
 }
 
-@media (max-width: 768px) {
-  .gallery {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 15px;
-    gap: 8px;
-  }
+@media (max-width: 900px) {
+  .gallery { columns: 3; padding: 20px; column-gap: 12px; }
+}
+@media (max-width: 600px) {
+  .gallery { columns: 2; padding: 12px; column-gap: 8px; }
 }
 
 .gallery img {
-  width:100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius:10px;
-  cursor:pointer;
-  transition:0.3s ease;
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  display: block;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 600px) {
+  .gallery img { margin-bottom: 8px; border-radius: 6px; }
 }
 
 .gallery img:hover {
-  transform:scale(1.02);
+  transform: scale(1.02);
 }
 
-/* LIGHTBOX INTERAMENTE AGGIORNATO */
+/* LIGHTBOX BOOTSTRAP-LIKE / ULTRA CLEAN */
 .lightbox {
-  position:fixed;
-  inset:0;
-  background:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  opacity:0;
-  visibility:hidden;
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
   z-index: 9999;
   overflow: hidden;
-  touch-action: none; /* Previene lo scroll nativo della pagina sotto */
+  touch-action: none;
 }
 
 .lightbox.active {
-  opacity:1;
-  visibility:visible;
+  opacity: 1;
+  visibility: visible;
 }
 
-/* Contenitore per lo zoom fluido */
+/* Area di contenimento dello zoom e del trascinamento */
 .lightbox-wrapper {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1);
   will-change: transform;
 }
 
+/* Immagine con taglio netto professionale, senza ombre o curve */
 .lightbox img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 85%;
+  max-height: 80%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1);
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  transition: max-width 0.25s ease, max-height 0.25s ease, transform 0.2s ease-out;
   transform-origin: center center;
   will-change: transform;
+  cursor: pointer;
 }
 
-/* NAV */
+/* Clic Singolo -> Immagine a Schermo Intero */
+.lightbox.fullscreen img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Stato di Zoom Attivo (Doppio Tap/Clic) */
+.lightbox.zoomed img {
+  cursor: move;
+}
+
+/* INTERFACCIA ESTERNA ISOLATA */
 .close, .nav {
-  position:absolute;
-  font-size:28px;
-  cursor:pointer;
-  user-select:none;
-  color:#111;
-  z-index: 10000;
-  background: rgba(255,255,255,0.8);
-  padding: 10px;
-  border-radius: 50%;
+  position: absolute;
+  font-size: 24px;
+  cursor: pointer;
+  user-select: none;
+  color: #111;
+  z-index: 10010;
+  background: rgba(245, 245, 245, 0.9);
+  border: 1px solid #ddd;
   width: 50px;
   height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s;
 }
 
-.close { top:20px; right:25px; }
-.prev { left:20px; top:50%; transform:translateY(-50%); }
-.next { right:20px; top:50%; transform:translateY(-50%); }
+.close:hover, .nav:hover { background: #e5e5e5; }
+
+.close { top: 30px; right: 30px; }
+.prev { left: 30px; top: 50%; transform: translateY(-50%); }
+.next { right: 30px; top: 50%; transform: translateY(-50%); }
 
 @media (max-width: 768px) {
-  .nav { display: none; } /* Su mobile si usa solo lo swipe */
+  .nav { display: none; }
+  .close { top: 20px; right: 20px; width: 44px; height: 44px; }
 }
-
 </style>
 </head>
 
@@ -207,14 +229,17 @@ const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 
 let index = 0;
+let isFullscreen = false;
 let isZoomed = false;
 let lastTap = 0;
+let clickTimeout;
 
-// Variabili per Swipe & Trasinamento (Pan)
+// Logica di spostamento (Pan) e Swipe
 let startX = 0, startY = 0;
 let currentX = 0, currentY = 0;
 let translateX = 0, translateY = 0;
 let isDragging = false;
+let zoomScale = 1;
 
 images.forEach((img, i) => {
     img.addEventListener("click", () => {
@@ -230,12 +255,12 @@ function openLightbox() {
 
 function updateImage() {
     lightboxImg.src = images[index].src;
-    resetZoom();
+    resetState();
 }
 
 function closeLightbox() {
     lightbox.classList.remove("active");
-    resetZoom();
+    resetState();
 }
 
 function next() {
@@ -250,61 +275,81 @@ function prev() {
     updateImage();
 }
 
-function resetZoom() {
+function resetState() {
+    isFullscreen = false;
     isZoomed = false;
-    translateX = 0;
-    translateY = 0;
-    currentX = 0;
-    currentY = 0;
+    zoomScale = 1;
+    currentX = 0; currentY = 0;
+    translateX = 0; translateY = 0;
+    lightbox.classList.remove("fullscreen", "zoomed");
     lightboxImg.style.transform = `scale(1)`;
     wrapper.style.transform = `translate(0px, 0px)`;
 }
 
 /* ==========================================
-   GESTIONE ZOOM FLUIDO (DOUBLE TAP / CLICK)
+   ZOOM FLUIDO GESTITO IN JAVASCRIPT (SIA CENTRATO CHE FULLSCREEN)
    ========================================== */
-function handleDoubleTap(e) {
+function toggleZoom(e) {
+    isZoomed = !isZoomed;
+    if (isZoomed) {
+        zoomScale = 2.5; // Moltiplicatore zoom fluido
+        lightbox.classList.add("zoomed");
+        lightboxImg.style.transform = `scale(${zoomScale})`;
+    } else {
+        resetState();
+    }
+}
+
+lightboxImg.addEventListener("click", (e) => {
+    e.stopPropagation();
     const now = new Date().getTime();
     const timespan = now - lastTap;
-    
+
     if (timespan < 300 && timespan > 0) {
+        // DOPPIO TAP / DOPPIO CLIC -> ZOOM IN QUALSIASI STATO
+        clearTimeout(clickTimeout);
         toggleZoom(e);
+    } else {
+        // CLIC SINGOLO -> ALTERNA SCHERMO INTERO NATURALE / CENTRATO
+        clickTimeout = setTimeout(() => {
+            if (!isZoomed) {
+                isFullscreen = !isFullscreen;
+                if (isFullscreen) {
+                    lightbox.classList.add("fullscreen");
+                } else {
+                    lightbox.classList.remove("fullscreen");
+                }
+            }
+        }, 250);
     }
     lastTap = now;
-}
-
-function toggleZoom(e) {
-    if (isZoomed) {
-        resetZoom();
-    } else {
-        isZoomed = true;
-        // Zoom 2.5x nativo e pulito
-        lightboxImg.style.transform = `scale(2.5)`;
-    }
-}
-
-lightboxImg.addEventListener("click", handleDoubleTap);
+});
 
 /* ==========================================
-   INTERAZIONI TOUCH & SWIPE INTEGRATE
+   GESTIONE DEI MOVIMENTI (TRASLAZIONE ZOOM ED EVITAMENTO BUG SWIPE)
    ========================================== */
 lightbox.addEventListener("touchstart", (e) => {
-    if (e.touches.length > 1) return; // Ignora pinch-to-zoom hardware per evitare bug
-    
     isDragging = true;
-    startX = e.touches[0].clientX - currentX;
-    startY = e.touches[0].clientY - currentY;
+    if (isZoomed) {
+        startX = e.touches[0].clientX - translateX;
+        startY = e.touches[0].clientY - translateY;
+    } else {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }
 });
 
 lightbox.addEventListener("touchmove", (e) => {
-    if (!isDragging || e.touches.length > 1) return;
-    
-    currentX = e.touches[0].clientX - startX;
-    currentY = e.touches[0].clientY - startY;
+    if (!isDragging) return;
 
     if (isZoomed) {
-        // Se è zoomato, l'utente sposta l'immagine (Pan)
-        wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        // Muove la foto dentro lo zoom (Pan) senza cambiare immagine
+        translateX = e.touches[0].clientX - startX;
+        translateY = e.touches[0].clientY - startY;
+        wrapper.style.transform = `translate(${translateX}px, ${translateY}px)`;
+    } else {
+        // Tracciamento temporaneo dello swipe standard
+        currentX = e.touches[0].clientX - startX;
     }
 });
 
@@ -313,32 +358,36 @@ lightbox.addEventListener("touchend", (e) => {
     isDragging = false;
 
     if (!isZoomed) {
-        // Se NON è zoomato, calcola lo swipe laterale per cambiare foto
-        const diffX = currentX;
-        const diffY = currentY;
-
-        // Verifica che lo swipe sia prevalentemente orizzontale e sufficientemente lungo
-        if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
-            if (diffX > 0) {
-                prev();
-            } else {
-                next();
-            }
+        // Cambia foto con lo swipe solo se NON siamo in modalità zoom
+        if (Math.abs(currentX) > 70) {
+            if (currentX < 0) next(); else prev();
         }
-        // Ripristina posizioni temporanee dello swipe
-        currentX = 0;
-        currentY = 0;
     }
+    currentX = 0;
 });
 
-/* ==========================================
-   PULSANTI, DETECT DI CHIUSURA E TASTIERA
-   ========================================== */
+/* TRASCINAMENTO MOUSE SU DESKTOP QUANDO ZOOMATO */
+lightbox.addEventListener("mousedown", (e) => {
+    if (!isZoomed) return;
+    isDragging = true;
+    startX = e.clientX - translateX;
+    startY = e.clientY - translateY;
+});
+
+window.addEventListener("mousemove", (e) => {
+    if (!isDragging || !isZoomed) return;
+    translateX = e.clientX - startX;
+    translateY = e.clientY - startY;
+    wrapper.style.transform = `translate(${translateX}px, ${translateY}px)`;
+});
+
+window.addEventListener("mouseup", () => { isDragging = false; });
+
+/* CONTROLLI */
 closeBtn.onclick = closeLightbox;
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
 
-// Chiude cliccando lo sfondo bianco (solo se non si sta trascinando l'immagine)
 lightbox.onclick = (e) => {
     if (e.target === lightbox || e.target === wrapper) {
         closeLightbox();
@@ -355,6 +404,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
