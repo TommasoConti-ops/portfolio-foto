@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Portfolio Fotografico</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -96,8 +96,6 @@ h2 {
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
   z-index: 9999;
-  overflow: hidden;
-  touch-action: none;
 }
 
 .lightbox.active {
@@ -111,11 +109,9 @@ h2 {
   display: flex;
   justify-content: center;
   align-items: center;
-  will-change: transform;
-  transition: transform 0.2s ease-out;
 }
 
-/* STEP 1: Immagine nativa centrata con angoli smussati e ombra che risalta */
+/* STEP 1: Immagine nativa centrata con angoli smussati e ombra */
 .lightbox img {
   max-width: 85%;
   max-height: 80%;
@@ -124,33 +120,21 @@ h2 {
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-  border-radius: 12px; /* Angoli smussati nel lightbox */
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08); /* Ombra profonda */
-  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1), max-width 0.3s, max-height 0.3s, border-radius 0.3s, box-shadow 0.3s;
-  transform-origin: center center;
-  will-change: transform;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: max-width 0.3s ease, max-height 0.3s ease, border-radius 0.3s ease;
   cursor: pointer;
 }
 
-/* STEP 2: Schermo intero (Clic singolo) -> l'immagine si allarga, l'ombra e gli angoli rimangono fluidi */
+/* STEP 2: Schermo intero (Clic singolo) */
 .lightbox.fullscreen img {
   max-width: 100%;
   max-height: 100%;
-  border-radius: 0px; /* Rimosso a schermo intero totale per riempire i bordi, o lascialo se preferisci */
+  border-radius: 0px;
   box-shadow: none;
 }
 
-/* ZOOM COMPLETO (Doppio Clic/Tap) -> override totale su scala e trascinamento attivo */
-.lightbox.zoomed img {
-  max-width: 100% !important;
-  max-height: 100% !important;
-  transform: scale(2.5) !important;
-  border-radius: 4px; /* Ridotto per lo zoom */
-  box-shadow: none;
-  cursor: move;
-}
-
-/* INTERFACCIA ISOLATA */
+/* PULSANTI DI INTERFACCIA ISOLATI */
 .close, .nav {
   position: absolute;
   font-size: 24px;
@@ -237,15 +221,8 @@ const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 
 let index = 0;
-let isZoomed = false;
 let isFullscreen = false;
-let lastTap = 0;
-let clickTimeout;
-
-// Gestione trascinamento e swipe
-let startX = 0, startY = 0;
-let currentX = 0, currentY = 0;
-let isDragging = false;
+let startX = 0;
 
 images.forEach((img, i) => {
     img.addEventListener("click", () => {
@@ -270,115 +247,49 @@ function closeLightbox() {
 }
 
 function next() {
-    if (isZoomed) return;
     index = (index + 1) % images.length;
     updateImage();
 }
 
 function prev() {
-    if (isZoomed) return;
     index = (index - 1 + images.length) % images.length;
     updateImage();
 }
 
 function resetState() {
-    isZoomed = false;
     isFullscreen = false;
-    currentX = 0;
-    currentY = 0;
-    lightbox.classList.remove("zoomed", "fullscreen");
-    wrapper.style.transform = `translate(0px, 0px)`;
+    lightbox.classList.remove("fullscreen");
 }
 
 /* ==========================================
-   GESTIONE CLIC SINGOLO / DOPPIO SU QUALSIASI LIVELLO
+   INTERAZIONE CLIC SINGOLO PER SCHERMO INTERO
    ========================================== */
 lightboxImg.addEventListener("click", (e) => {
     e.stopPropagation();
-    const now = new Date().getTime();
-    const timespan = now - lastTap;
-
-    if (timespan < 300 && timespan > 0) {
-        // DOPPIO CLIC/TAP -> Zoom completo istantaneo (Ovunque ti trovi)
-        clearTimeout(clickTimeout);
-        isZoomed = !isZoomed;
-        if (isZoomed) {
-            lightbox.classList.add("zoomed");
-        } else {
-            lightbox.classList.remove("zoomed");
-            currentX = 0; currentY = 0;
-            wrapper.style.transform = `translate(0px, 0px)`;
-        }
+    isFullscreen = !isFullscreen;
+    if (isFullscreen) {
+        lightbox.classList.add("fullscreen");
     } else {
-        // CLIC SINGOLO -> Alterna schermo intero nativo / centrato
-        clickTimeout = setTimeout(() => {
-            if (!isZoomed) {
-                isFullscreen = !isFullscreen;
-                if (isFullscreen) {
-                    lightbox.classList.add("fullscreen");
-                } else {
-                    lightbox.classList.remove("fullscreen");
-                }
-            }
-        }, 250);
+        lightbox.classList.remove("fullscreen");
     }
-    lastTap = now;
 });
 
 /* ==========================================
-   INTERAZIONI DI MOVIMENTO (SWIPE O DRAG PAN)
+   SWIPE MOBILE (FUNZIONA SE NON STAI ZOOMANDO CON LE DITA)
    ========================================== */
 lightbox.addEventListener("touchstart", (e) => {
-    if (e.touches.length > 1) return;
-    isDragging = true;
-    startX = e.touches[0].clientX - currentX;
-    startY = e.touches[0].clientY - currentY;
-});
-
-lightbox.addEventListener("touchmove", (e) => {
-    if (!isDragging || e.touches.length > 1) return;
-    
-    currentX = e.touches[0].clientX - startX;
-    currentY = e.touches[0].clientY - startY;
-
-    if (isZoomed) {
-        wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
-    }
+    if (e.touches.length > 1) return; // Se usa due dita per zoomare, ignora lo swipe
+    startX = e.touches[0].clientX;
 });
 
 lightbox.addEventListener("touchend", (e) => {
-    if (!isDragging) return;
-    isDragging = false;
+    if (e.changedTouches.length > 1) return;
+    
+    let diffX = startX - e.changedTouches[0].clientX;
 
-    if (!isZoomed) {
-        const diffX = currentX;
-        const diffY = currentY;
-
-        if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
-            if (diffX > 0) prev(); else next();
-        }
-        currentX = 0;
-        currentY = 0;
+    if (Math.abs(diffX) > 80) {
+        if (diffX > 0) next(); else prev();
     }
-});
-
-/* MOUSE DRAG DESKTOP QUANDO ZOOMATO */
-lightbox.addEventListener("mousedown", (e) => {
-    if (!isZoomed || e.target !== lightboxImg) return;
-    isDragging = true;
-    startX = e.clientX - currentX;
-    startY = e.clientY - currentY;
-});
-
-window.addEventListener("mousemove", (e) => {
-    if (!isDragging || !isZoomed) return;
-    currentX = e.clientX - startX;
-    currentY = e.clientY - startY;
-    wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
-});
-
-window.addEventListener("mouseup", () => {
-    isDragging = false;
 });
 
 /* CONTROLLI */
@@ -402,6 +313,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
