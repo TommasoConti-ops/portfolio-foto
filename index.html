@@ -51,7 +51,7 @@ h2 {
   line-height:1.4;
 }
 
-/* GRID PINTEREST - OTTIMIZZATA PER ORIZZONTALE E VERTICALE */
+/* GRID PINTEREST */
 .gallery {
   columns: 3;
   column-gap: 16px;
@@ -59,11 +59,9 @@ h2 {
 }
 
 @media (max-width: 900px) {
-  /* Tablet o telefono in orizzontale */
   .gallery { columns: 3; padding: 20px; column-gap: 12px; }
 }
 @media (max-width: 600px) {
-  /* Telefono in VERTICALE: mantiene le foto piccole su 2 colonne */
   .gallery { columns: 2; padding: 12px; column-gap: 8px; }
 }
 
@@ -117,7 +115,7 @@ h2 {
   transition: transform 0.2s ease-out;
 }
 
-/* STEP 1: Immagine nativa centrata (non riempie lo schermo) */
+/* STEP 1: Immagine nativa centrata con angoli smussati e ombra che risalta */
 .lightbox img {
   max-width: 85%;
   max-height: 80%;
@@ -126,27 +124,33 @@ h2 {
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1), max-width 0.3s, max-height 0.3s;
+  border-radius: 12px; /* Angoli smussati nel lightbox */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.08); /* Ombra profonda */
+  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1), max-width 0.3s, max-height 0.3s, border-radius 0.3s, box-shadow 0.3s;
   transform-origin: center center;
   will-change: transform;
   cursor: pointer;
 }
 
-/* STEP 2: Schermo intero (Clic singolo) */
+/* STEP 2: Schermo intero (Clic singolo) -> l'immagine si allarga, l'ombra e gli angoli rimangono fluidi */
 .lightbox.fullscreen img {
   max-width: 100%;
   max-height: 100%;
+  border-radius: 0px; /* Rimosso a schermo intero totale per riempire i bordi, o lascialo se preferisci */
+  box-shadow: none;
 }
 
-/* STEP EXTRA: Zoom massimo con doppio click/tap */
+/* ZOOM COMPLETO (Doppio Clic/Tap) -> override totale su scala e trascinamento attivo */
 .lightbox.zoomed img {
-  max-width: 100%;
-  max-height: 100%;
-  transform: scale(2.5);
+  max-width: 100% !important;
+  max-height: 100% !important;
+  transform: scale(2.5) !important;
+  border-radius: 4px; /* Ridotto per lo zoom */
+  box-shadow: none;
   cursor: move;
 }
 
-/* PULSANTI DI INTERFACCIA ISOLATI */
+/* INTERFACCIA ISOLATA */
 .close, .nav {
   position: absolute;
   font-size: 24px;
@@ -172,7 +176,7 @@ h2 {
 .next { right: 30px; top: 50%; transform: translateY(-50%); }
 
 @media (max-width: 768px) {
-  .nav { display: none; } /* Su mobile si va di swipe */
+  .nav { display: none; }
   .close { top: 20px; right: 20px; width: 44px; height: 44px; }
 }
 
@@ -287,7 +291,7 @@ function resetState() {
 }
 
 /* ==========================================
-   GESTIONE CLIC SINGOLO (FULLSCREEN) / DOPPIO (ZOOM)
+   GESTIONE CLIC SINGOLO / DOPPIO SU QUALSIASI LIVELLO
    ========================================== */
 lightboxImg.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -295,7 +299,7 @@ lightboxImg.addEventListener("click", (e) => {
     const timespan = now - lastTap;
 
     if (timespan < 300 && timespan > 0) {
-        // DOPPIO CLIC/TAP -> Attiva/Disattiva Zoom Massimizzato
+        // DOPPIO CLIC/TAP -> Zoom completo istantaneo (Ovunque ti trovi)
         clearTimeout(clickTimeout);
         isZoomed = !isZoomed;
         if (isZoomed) {
@@ -306,7 +310,7 @@ lightboxImg.addEventListener("click", (e) => {
             wrapper.style.transform = `translate(0px, 0px)`;
         }
     } else {
-        // CLIC SINGOLO -> Alterna Schermo Intero (Fullscreen)
+        // CLIC SINGOLO -> Alterna schermo intero nativo / centrato
         clickTimeout = setTimeout(() => {
             if (!isZoomed) {
                 isFullscreen = !isFullscreen;
@@ -322,7 +326,7 @@ lightboxImg.addEventListener("click", (e) => {
 });
 
 /* ==========================================
-   TOUCH GESTURES (SWIPE SU NATIVO / PAN SU ZOOM)
+   INTERAZIONI DI MOVIMENTO (SWIPE O DRAG PAN)
    ========================================== */
 lightbox.addEventListener("touchstart", (e) => {
     if (e.touches.length > 1) return;
@@ -358,9 +362,7 @@ lightbox.addEventListener("touchend", (e) => {
     }
 });
 
-/* ==========================================
-   MOUSE DRAG (DESKTOP PAN QUANDO ZOOMATO)
-   ========================================== */
+/* MOUSE DRAG DESKTOP QUANDO ZOOMATO */
 lightbox.addEventListener("mousedown", (e) => {
     if (!isZoomed || e.target !== lightboxImg) return;
     isDragging = true;
@@ -400,6 +402,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
