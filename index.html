@@ -99,11 +99,12 @@ h2 {
   cursor:zoom-in;
 }
 
-/* FULLSCREEN VISIVO */
 .lightbox.zoomed img {
-  max-width:100%;
-  max-height:100%;
-  transform:scale(1);
+  max-width:none;
+  max-height:none;
+  width:auto;
+  height:auto;
+  transform:scale(2);
   cursor:zoom-out;
 }
 
@@ -130,7 +131,7 @@ h2 {
   <h2>FOTOGRAFIA</h2>
 
   <div class="desc">
-    le mie immagini<br>
+    le mie immagini,<br>
     il mio sguardo sul mondo
   </div>
 </header>
@@ -178,84 +179,160 @@ const nextBtn = document.getElementById("next");
 
 let index = 0;
 let zoomed = false;
+let startX = 0;
+let lastTap = 0;
 
-/* OPEN */
-images.forEach((img,i)=>{
-  img.addEventListener("click",()=>{
-    index=i;
-    open();
-  });
+/* =========================
+   APERTURA
+========================= */
+
+images.forEach((img, i) => {
+
+    img.addEventListener("click", () => {
+        index = i;
+        open();
+    });
+
 });
 
-function open(){
-  lightbox.classList.add("active");
-  update();
+function open() {
+    lightbox.classList.add("active");
+    update();
 }
 
-function update(){
-  lightboxImg.src = images[index].src;
-  resetZoom();
+function update() {
+    lightboxImg.src = images[index].src;
+    resetZoom();
 }
 
-function close(){
-  lightbox.classList.remove("active");
-  resetZoom();
+function close() {
+    lightbox.classList.remove("active");
+    resetZoom();
 }
 
-function next(){
-  index = (index+1)%images.length;
-  update();
+function next() {
+
+    if (zoomed) return;
+
+    index = (index + 1) % images.length;
+    update();
+
 }
 
-function prev(){
-  index = (index-1+images.length)%images.length;
-  update();
+function prev() {
+
+    if (zoomed) return;
+
+    index = (index - 1 + images.length) % images.length;
+    update();
+
 }
 
-function resetZoom(){
-  zoomed = false;
-  lightbox.classList.remove("zoomed");
+function resetZoom() {
+
+    zoomed = false;
+    lightbox.classList.remove("zoomed");
+
 }
 
-/* CLICK = FULLSCREEN VISIVO TOGGLE */
-lightboxImg.addEventListener("click",(e)=>{
-  e.stopPropagation();
-  zoomed = !zoomed;
-  lightbox.classList.toggle("zoomed");
+/* =========================
+   DOPPIO TAP PER LO ZOOM
+========================= */
+
+lightboxImg.addEventListener("click", (e) => {
+
+    e.stopPropagation();
+
 });
 
-/* EVENTS */
+lightboxImg.addEventListener("touchend", (e) => {
+
+    e.stopPropagation();
+
+    const now = new Date().getTime();
+
+    if (now - lastTap < 300) {
+
+        zoomed = !zoomed;
+
+        lightbox.classList.toggle("zoomed");
+
+    }
+
+    lastTap = now;
+
+});
+
+/* =========================
+   PULSANTI
+========================= */
+
 closeBtn.onclick = close;
+
 nextBtn.onclick = next;
+
 prevBtn.onclick = prev;
 
-lightbox.onclick = e=>{
-  if(e.target===lightbox) close();
+/* =========================
+   CHIUSURA
+========================= */
+
+lightbox.onclick = (e) => {
+
+    if (e.target === lightbox)
+        close();
+
 };
 
-/* SWIPE */
-let startX=0;
+/* =========================
+   SWIPE
+========================= */
 
-lightbox.addEventListener("touchstart",e=>{
-  startX = e.touches[0].clientX;
+lightbox.addEventListener("touchstart", (e) => {
+
+    if (zoomed) return;
+
+    if (e.touches.length > 1) return;
+
+    startX = e.touches[0].clientX;
+
 });
 
-lightbox.addEventListener("touchend",e=>{
-  let diff = startX - e.changedTouches[0].clientX;
+lightbox.addEventListener("touchend", (e) => {
 
-  if(Math.abs(diff)>50){
-    if(diff>0) next();
-    else prev();
-  }
+    if (zoomed) return;
+
+    let diff = startX - e.changedTouches[0].clientX;
+
+    if (Math.abs(diff) > 50) {
+
+        if (diff > 0)
+            next();
+        else
+            prev();
+
+    }
+
 });
 
-/* KEYBOARD */
-document.addEventListener("keydown",e=>{
-  if(!lightbox.classList.contains("active")) return;
+/* =========================
+   TASTIERA
+========================= */
 
-  if(e.key==="Escape") close();
-  if(e.key==="ArrowRight") next();
-  if(e.key==="ArrowLeft") prev();
+document.addEventListener("keydown", (e) => {
+
+    if (!lightbox.classList.contains("active"))
+        return;
+
+    if (e.key === "Escape")
+        close();
+
+    if (e.key === "ArrowRight")
+        next();
+
+    if (e.key === "ArrowLeft")
+        prev();
+
 });
 </script>
 
