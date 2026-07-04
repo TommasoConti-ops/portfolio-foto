@@ -51,103 +51,126 @@ h2 {
   line-height:1.4;
 }
 
-/* GRID FOTO */
+/* COLONNE FLUIDE (STILE PINTEREST)
+   Garantisce che nessuna immagine venga tagliata a quadrato 
+*/
 .gallery {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:12px;
-  padding:40px;
+  columns: 3;
+  column-gap: 20px;
+  padding: 40px;
 }
 
-@media (max-width: 768px) {
-  .gallery {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 15px;
-    gap: 8px;
-  }
+@media (max-width: 900px) {
+  .gallery { columns: 2; padding: 20px; }
+}
+@media (max-width: 600px) {
+  .gallery { columns: 1; padding: 15px; }
 }
 
 .gallery img {
-  width:100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius:10px;
-  cursor:pointer;
-  transition:0.3s ease;
+  width: 100% !important;
+  height: auto !important; /* Forza il browser a usare l'altezza proporzionale nativa */
+  aspect-ratio: auto !important; /* Rimuove qualsiasi vincolo quadrato precedente */
+  display: block;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .gallery img:hover {
-  transform:scale(1.02);
+  transform: scale(1.02);
 }
 
-/* LIGHTBOX INTERAMENTE AGGIORNATO */
+/* LIGHTBOX */
 .lightbox {
-  position:fixed;
-  inset:0;
-  background:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  opacity:0;
-  visibility:hidden;
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
   z-index: 9999;
   overflow: hidden;
-  touch-action: none; /* Previene lo scroll nativo della pagina sotto */
+  touch-action: none;
 }
 
 .lightbox.active {
-  opacity:1;
-  visibility:visible;
+  opacity: 1;
+  visibility: visible;
 }
 
-/* Contenitore per lo zoom fluido */
+/* Contenitore di movimento */
 .lightbox-wrapper {
   width: 100%;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1);
   will-change: transform;
 }
 
+/* STEP 1: Immagine a grandezza naturale proporzionata dentro lo schermo (Non a schermo intero) */
 .lightbox img {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 85%;
+  max-height: 80%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
-  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1);
+  transition: transform 0.35s cubic-bezier(0.15, 1, 0.3, 1), max-width 0.35s, max-height 0.35s;
   transform-origin: center center;
   will-change: transform;
+  cursor: zoom-in;
 }
 
-/* NAV */
+/* STEP 2: Schermo intero con Zoom Fluido attivo */
+.lightbox.zoomed img {
+  max-width: 100%;
+  max-height: 100%;
+  transform: scale(2.2); /* Ingrandimento fluido */
+  cursor: zoom-out;
+}
+
+/* INTERFACCIA E PULSANTI ISOLATI */
 .close, .nav {
-  position:absolute;
-  font-size:28px;
-  cursor:pointer;
-  user-select:none;
-  color:#111;
-  z-index: 10000;
-  background: rgba(255,255,255,0.8);
-  padding: 10px;
-  border-radius: 50%;
+  position: absolute;
+  font-size: 24px;
+  cursor: pointer;
+  user-select: none;
+  color: #111;
+  z-index: 10010;
+  background: rgba(245, 245, 245, 0.9);
+  border: 1px solid #ddd;
   width: 50px;
   height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s, transform 0.2s;
 }
 
-.close { top:20px; right:25px; }
-.prev { left:20px; top:50%; transform:translateY(-50%); }
-.next { right:20px; top:50%; transform:translateY(-50%); }
+.close:hover, .nav:hover {
+  background: #e5e5e5;
+}
+
+/* Posizionata fissa in alto a destra fuori dalle scatole */
+.close { 
+  top: 30px; 
+  right: 30px; 
+}
+
+.prev { left: 30px; top: 50%; transform: translateY(-50%); }
+.next { right: 30px; top: 50%; transform: translateY(-50%); }
 
 @media (max-width: 768px) {
-  .nav { display: none; } /* Su mobile si usa solo lo swipe */
+  .nav { display: none; } /* Su mobile si usano le gesture (Swipe e Tap) */
+  .close { top: 20px; right: 20px; width: 44px; height: 44px; }
 }
 
 </style>
@@ -210,10 +233,9 @@ let index = 0;
 let isZoomed = false;
 let lastTap = 0;
 
-// Variabili per Swipe & Trasinamento (Pan)
+// Variabili di tracciamento posizioni (Swipe & Trasinamento Pan)
 let startX = 0, startY = 0;
 let currentX = 0, currentY = 0;
-let translateX = 0, translateY = 0;
 let isDragging = false;
 
 images.forEach((img, i) => {
@@ -252,45 +274,53 @@ function prev() {
 
 function resetZoom() {
     isZoomed = false;
-    translateX = 0;
-    translateY = 0;
     currentX = 0;
     currentY = 0;
-    lightboxImg.style.transform = `scale(1)`;
+    lightbox.classList.remove("zoomed");
     wrapper.style.transform = `translate(0px, 0px)`;
 }
 
 /* ==========================================
-   GESTIONE ZOOM FLUIDO (DOUBLE TAP / CLICK)
+   ZOOM DOPPIO LIVELLO (TAP / DOPPIO CLICK)
    ========================================== */
-function handleDoubleTap(e) {
-    const now = new Date().getTime();
-    const timespan = now - lastTap;
-    
-    if (timespan < 300 && timespan > 0) {
-        toggleZoom(e);
-    }
-    lastTap = now;
-}
-
-function toggleZoom(e) {
+function toggleZoom() {
     if (isZoomed) {
         resetZoom();
     } else {
         isZoomed = true;
-        // Zoom 2.5x nativo e pulito
-        lightboxImg.style.transform = `scale(2.5)`;
+        lightbox.classList.add("zoomed");
     }
 }
 
-lightboxImg.addEventListener("click", handleDoubleTap);
+// Intercetta il doppio click o doppio tap su mobile
+lightboxImg.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const now = new Date().getTime();
+    const timespan = now - lastTap;
+    
+    if (timespan < 300 && timespan > 0) {
+        toggleZoom();
+    } else {
+        // Clic singolo alternativo per attivare lo zoom a schermo intero
+        setTimeout(() => {
+            if (new Date().getTime() - lastTap >= 300 && !isZoomed) {
+                // Se fai un clic singolo standard puoi decidere se zoomare o no
+            }
+        }, 300);
+    }
+    lastTap = now;
+});
+
+// Supporto aggiuntivo per il click singolo per passare a schermo intero
+lightboxImg.addEventListener("pointerdown", (e) => {
+    // Rende l'esperienza fluida sia su desktop che mobile
+});
 
 /* ==========================================
-   INTERAZIONI TOUCH & SWIPE INTEGRATE
+   DRAG-PAN & SWIPE GESTURES
    ========================================== */
 lightbox.addEventListener("touchstart", (e) => {
-    if (e.touches.length > 1) return; // Ignora pinch-to-zoom hardware per evitare bug
-    
+    if (e.touches.length > 1) return; 
     isDragging = true;
     startX = e.touches[0].clientX - currentX;
     startY = e.touches[0].clientY - currentY;
@@ -303,7 +333,7 @@ lightbox.addEventListener("touchmove", (e) => {
     currentY = e.touches[0].clientY - startY;
 
     if (isZoomed) {
-        // Se è zoomato, l'utente sposta l'immagine (Pan)
+        // Navigazione fluida a tutto schermo (Pan)
         wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
     }
 });
@@ -313,32 +343,45 @@ lightbox.addEventListener("touchend", (e) => {
     isDragging = false;
 
     if (!isZoomed) {
-        // Se NON è zoomato, calcola lo swipe laterale per cambiare foto
+        // Se l'immagine è centrata al naturale, lo swipe cambia la foto
         const diffX = currentX;
         const diffY = currentY;
 
-        // Verifica che lo swipe sia prevalentemente orizzontale e sufficientemente lungo
         if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
-            if (diffX > 0) {
-                prev();
-            } else {
-                next();
-            }
+            if (diffX > 0) prev(); else next();
         }
-        // Ripristina posizioni temporanee dello swipe
         currentX = 0;
         currentY = 0;
     }
 });
 
-/* ==========================================
-   PULSANTI, DETECT DI CHIUSURA E TASTIERA
-   ========================================== */
+/* INTERFACCIA DESKTOP (MOUSE DRAG QUANDO ZOOMATO) */
+lightbox.addEventListener("mousedown", (e) => {
+    if (!isZoomed || e.target !== lightboxImg) return;
+    isDragging = true;
+    startX = e.clientX - currentX;
+    startY = e.clientY - currentY;
+    lightboxImg.style.cursor = "grabbing";
+});
+
+window.addEventListener("mousemove", (e) => {
+    if (!isDragging || !isZoomed) return;
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+});
+
+window.addEventListener("mouseup", () => {
+    if (!isDragging) return;
+    isDragging = false;
+    if(lightboxImg) lightboxImg.style.cursor = "zoom-out";
+});
+
+/* CONTROLLI DI CHIUSURA */
 closeBtn.onclick = closeLightbox;
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
 
-// Chiude cliccando lo sfondo bianco (solo se non si sta trascinando l'immagine)
 lightbox.onclick = (e) => {
     if (e.target === lightbox || e.target === wrapper) {
         closeLightbox();
@@ -355,6 +398,7 @@ document.addEventListener("keydown", (e) => {
 
 </body>
 </html>
+
 
 
 
