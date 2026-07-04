@@ -84,6 +84,94 @@ h2 {
   transform: scale(1.02);
 }
 
+/* SEZIONE COMMENTI NUOVA */
+.comments-section {
+  max-width: 600px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.comments-section h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.comment-form input, .comment-form textarea {
+  font-family: Inter, sans-serif;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.comment-form input:focus, .comment-form textarea:focus {
+  border-color: #111;
+}
+
+.comment-form button {
+  font-family: Inter, sans-serif;
+  align-self: flex-start;
+  background: #111;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.comment-form button:hover {
+  background: #333;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.comment-item {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.comment-author {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.comment-date {
+  color: #888;
+  font-size: 12px;
+}
+
+.comment-body {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
 /* LIGHTBOX BOOTSTRAP-LIKE / ULTRA CLEAN */
 .lightbox {
   position: fixed;
@@ -209,6 +297,20 @@ h2 {
   <img src="IMG_2276_VSCO.jpeg">
   <img src="IMG_1067_VSCO_VSCO.jpeg">
   <img src="Princi.JPG">
+</section>
+
+<!-- SEZIONE COMMENTI AGGIUNTA -->
+<section class="comments-section">
+  <h3>Lascia un commento</h3>
+  <form class="comment-form" id="commentForm">
+    <input type="text" id="nickname" placeholder="Il tuo nome o nickname (lascia vuoto per anonimo)" maxlength="40">
+    <textarea id="commentText" placeholder="Scrivi qui il tuo pensiero..." rows="4" required></textarea>
+    <button type="submit">Invia commento</button>
+  </form>
+
+  <div class="comments-list" id="commentsList">
+    <!-- I commenti compariranno qui -->
+  </div>
 </section>
 
 <footer style="text-align:center; padding:40px; color:#888;">
@@ -389,7 +491,7 @@ window.addEventListener("mousemove", (e) => {
 
 window.addEventListener("mouseup", () => { isDragging = false; });
 
-/* CONTROLLI */
+/* CONTROLLI LIGHTBOX */
 closeBtn.onclick = closeLightbox;
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
@@ -406,10 +508,83 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
     if (e.key === "ArrowLeft") prev();
 });
+
+/* ==========================================
+   LOGICA DELLA SEZIONE COMMENTI (LOCALSTORAGE)
+   ========================================== */
+const commentForm = document.getElementById("commentForm");
+const commentsList = document.getElementById("commentsList");
+
+// Carica i commenti esistenti all'avvio della pagina
+document.addEventListener("DOMContentLoaded", loadComments);
+
+commentForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    
+    const nicknameInput = document.getElementById("nickname").value.trim();
+    const commentText = document.getElementById("commentText").value.trim();
+    
+    // Se il nickname è vuoto, viene impostato di default come "Anonimo"
+    const author = nicknameInput ? nicknameInput : "Anonimo";
+    
+    const date = new Date().toLocaleDateString("it-IT", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    const newComment = { author, text: commentText, date };
+    
+    saveComment(newComment);
+    appendCommentDOM(newComment);
+    
+    commentForm.reset();
+});
+
+function saveComment(comment) {
+    let comments = localStorage.getItem("portfolio_comments") 
+        ? JSON.parse(localStorage.getItem("portfolio_comments")) 
+        : [];
+    comments.push(comment);
+    localStorage.setItem("portfolio_comments", JSON.stringify(comments));
+}
+
+function loadComments() {
+    let comments = localStorage.getItem("portfolio_comments") 
+        ? JSON.parse(localStorage.getItem("portfolio_comments")) 
+        : [];
+    comments.forEach(comment => appendCommentDOM(comment));
+}
+
+function appendCommentDOM(comment) {
+    const commentItem = document.createElement("div");
+    commentItem.classList.add("comment-item");
+    
+    commentItem.innerHTML = `
+        <div class="comment-header">
+            <span class="comment-author">${escapeHTML(comment.author)}</span>
+            <span class="comment-date">${comment.date}</span>
+        </div>
+        <div class="comment-body">${escapeHTML(comment.text)}</div>
+    `;
+    
+    // Mostra l'ultimo commento in alto
+    commentsList.insertBefore(commentItem, commentsList.firstChild);
+}
+
+// Funzione di sicurezza elementare per prevenire injection di codice malevolo nei commenti
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+}
 </script>
 
 </body>
 </html>
+
 
 
 
