@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Portfolio Fotografico</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -14,6 +14,7 @@ body {
   font-family: Inter, sans-serif;
   background: #fff;
   color:#111;
+  overflow-x: hidden;
 }
 
 /* HEADER */
@@ -27,14 +28,12 @@ header {
   padding:20px;
 }
 
-/* 👇 NOME PIÙ PICCOLO */
 h1 {
   font-size:42px;
   font-weight:700;
   color:#000;
 }
 
-/* FOTOGRAFIA PICCOLO */
 h2 {
   font-size:14px;
   letter-spacing:4px;
@@ -43,7 +42,6 @@ h2 {
   font-weight:400;
 }
 
-/* 👇 SOLO 2 RIGHE CENTRATE */
 .desc {
   margin-top:20px;
   font-size:18px;
@@ -61,8 +59,19 @@ h2 {
   padding:40px;
 }
 
+@media (max-width: 768px) {
+  .gallery {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 15px;
+    gap: 8px;
+  }
+}
+
 .gallery img {
   width:100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   border-radius:10px;
   cursor:pointer;
   transition:0.3s ease;
@@ -72,7 +81,7 @@ h2 {
   transform:scale(1.02);
 }
 
-/* LIGHTBOX (BIANCO COME CHIESTO) */
+/* LIGHTBOX INTERAMENTE AGGIORNATO */
 .lightbox {
   position:fixed;
   inset:0;
@@ -82,7 +91,10 @@ h2 {
   align-items:center;
   opacity:0;
   visibility:hidden;
-  transition:0.2s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 9999;
+  overflow: hidden;
+  touch-action: none; /* Previene lo scroll nativo della pagina sotto */
 }
 
 .lightbox.active {
@@ -90,22 +102,26 @@ h2 {
   visibility:visible;
 }
 
-/* BASE IMAGE */
-.lightbox img {
-  max-width:95%;
-  max-height:95%;
-  object-fit:contain;
-  transition:transform 0.25s ease;
-  cursor:zoom-in;
+/* Contenitore per lo zoom fluido */
+.lightbox-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1);
+  will-change: transform;
 }
 
-.lightbox.zoomed img {
-  max-width:none;
-  max-height:none;
-  width:auto;
-  height:auto;
-  transform:scale(2);
-  cursor:zoom-out;
+.lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 0.3s cubic-bezier(0.1, 0.57, 0.1, 1);
+  transform-origin: center center;
+  will-change: transform;
 }
 
 /* NAV */
@@ -115,11 +131,24 @@ h2 {
   cursor:pointer;
   user-select:none;
   color:#111;
+  z-index: 10000;
+  background: rgba(255,255,255,0.8);
+  padding: 10px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .close { top:20px; right:25px; }
 .prev { left:20px; top:50%; transform:translateY(-50%); }
 .next { right:20px; top:50%; transform:translateY(-50%); }
+
+@media (max-width: 768px) {
+  .nav { display: none; } /* Su mobile si usa solo lo swipe */
+}
 
 </style>
 </head>
@@ -137,7 +166,6 @@ h2 {
 </header>
 
 <section class="gallery">
-
   <img src="IMG_1263_VSCO.jpeg">
   <img src="IMG_1279_VSCO.jpeg">
   <img src="IMG_1256_VSCO.jpeg">
@@ -153,191 +181,181 @@ h2 {
   <img src="IMG_1371_VSCO.jpeg">
   <img src="IMG_1461_VSCO.jpeg">
   <img src="IMG_1109_VSCO_VSCO.JPG">
-
 </section>
 
 <footer style="text-align:center; padding:40px; color:#888;">
 © 2026 – Portfolio Fotografico
 </footer>
 
-<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox">
   <div class="close" id="closeBtn">✕</div>
   <div class="nav prev" id="prev">&#10094;</div>
   <div class="nav next" id="next">&#10095;</div>
-  <img id="lightbox-img">
+  <div class="lightbox-wrapper" id="wrapper">
+    <img id="lightbox-img" alt="Portfolio Image">
+  </div>
 </div>
 
 <script>
 const images = document.querySelectorAll(".gallery img");
 const lightbox = document.getElementById("lightbox");
 const lightboxImg = document.getElementById("lightbox-img");
+const wrapper = document.getElementById("wrapper");
 
 const closeBtn = document.getElementById("closeBtn");
 const prevBtn = document.getElementById("prev");
 const nextBtn = document.getElementById("next");
 
 let index = 0;
-let zoomed = false;
-let startX = 0;
+let isZoomed = false;
 let lastTap = 0;
 
-/* =========================
-   APERTURA
-========================= */
+// Variabili per Swipe & Trasinamento (Pan)
+let startX = 0, startY = 0;
+let currentX = 0, currentY = 0;
+let translateX = 0, translateY = 0;
+let isDragging = false;
 
 images.forEach((img, i) => {
-
     img.addEventListener("click", () => {
         index = i;
-        open();
+        openLightbox();
     });
-
 });
 
-function open() {
+function openLightbox() {
     lightbox.classList.add("active");
-    update();
+    updateImage();
 }
 
-function update() {
+function updateImage() {
     lightboxImg.src = images[index].src;
     resetZoom();
 }
 
-function close() {
+function closeLightbox() {
     lightbox.classList.remove("active");
     resetZoom();
 }
 
 function next() {
-
-    if (zoomed) return;
-
+    if (isZoomed) return;
     index = (index + 1) % images.length;
-    update();
-
+    updateImage();
 }
 
 function prev() {
-
-    if (zoomed) return;
-
+    if (isZoomed) return;
     index = (index - 1 + images.length) % images.length;
-    update();
-
+    updateImage();
 }
 
 function resetZoom() {
-
-    zoomed = false;
-    lightbox.classList.remove("zoomed");
-
+    isZoomed = false;
+    translateX = 0;
+    translateY = 0;
+    currentX = 0;
+    currentY = 0;
+    lightboxImg.style.transform = `scale(1)`;
+    wrapper.style.transform = `translate(0px, 0px)`;
 }
 
-/* =========================
-   DOPPIO TAP PER LO ZOOM
-========================= */
-
-lightboxImg.addEventListener("click", (e) => {
-
-    e.stopPropagation();
-
-});
-
-lightboxImg.addEventListener("touchend", (e) => {
-
-    e.stopPropagation();
-
+/* ==========================================
+   GESTIONE ZOOM FLUIDO (DOUBLE TAP / CLICK)
+   ========================================== */
+function handleDoubleTap(e) {
     const now = new Date().getTime();
-
-    if (now - lastTap < 300) {
-
-        zoomed = !zoomed;
-
-        lightbox.classList.toggle("zoomed");
-
+    const timespan = now - lastTap;
+    
+    if (timespan < 300 && timespan > 0) {
+        toggleZoom(e);
     }
-
     lastTap = now;
+}
 
+function toggleZoom(e) {
+    if (isZoomed) {
+        resetZoom();
+    } else {
+        isZoomed = true;
+        // Zoom 2.5x nativo e pulito
+        lightboxImg.style.transform = `scale(2.5)`;
+    }
+}
+
+lightboxImg.addEventListener("click", handleDoubleTap);
+
+/* ==========================================
+   INTERAZIONI TOUCH & SWIPE INTEGRATE
+   ========================================== */
+lightbox.addEventListener("touchstart", (e) => {
+    if (e.touches.length > 1) return; // Ignora pinch-to-zoom hardware per evitare bug
+    
+    isDragging = true;
+    startX = e.touches[0].clientX - currentX;
+    startY = e.touches[0].clientY - currentY;
 });
 
-/* =========================
-   PULSANTI
-========================= */
+lightbox.addEventListener("touchmove", (e) => {
+    if (!isDragging || e.touches.length > 1) return;
+    
+    currentX = e.touches[0].clientX - startX;
+    currentY = e.touches[0].clientY - startY;
 
-closeBtn.onclick = close;
-
-nextBtn.onclick = next;
-
-prevBtn.onclick = prev;
-
-/* =========================
-   CHIUSURA
-========================= */
-
-lightbox.onclick = (e) => {
-
-    if (e.target === lightbox)
-        close();
-
-};
-
-/* =========================
-   SWIPE
-========================= */
-
-lightbox.addEventListener("touchstart", (e) => {
-
-    if (zoomed) return;
-
-    if (e.touches.length > 1) return;
-
-    startX = e.touches[0].clientX;
-
+    if (isZoomed) {
+        // Se è zoomato, l'utente sposta l'immagine (Pan)
+        wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
 });
 
 lightbox.addEventListener("touchend", (e) => {
+    if (!isDragging) return;
+    isDragging = false;
 
-    if (zoomed) return;
+    if (!isZoomed) {
+        // Se NON è zoomato, calcola lo swipe laterale per cambiare foto
+        const diffX = currentX;
+        const diffY = currentY;
 
-    let diff = startX - e.changedTouches[0].clientX;
-
-    if (Math.abs(diff) > 50) {
-
-        if (diff > 0)
-            next();
-        else
-            prev();
-
+        // Verifica che lo swipe sia prevalentemente orizzontale e sufficientemente lungo
+        if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+            if (diffX > 0) {
+                prev();
+            } else {
+                next();
+            }
+        }
+        // Ripristina posizioni temporanee dello swipe
+        currentX = 0;
+        currentY = 0;
     }
-
 });
 
-/* =========================
-   TASTIERA
-========================= */
+/* ==========================================
+   PULSANTI, DETECT DI CHIUSURA E TASTIERA
+   ========================================== */
+closeBtn.onclick = closeLightbox;
+nextBtn.onclick = next;
+prevBtn.onclick = prev;
+
+// Chiude cliccando lo sfondo bianco (solo se non si sta trascinando l'immagine)
+lightbox.onclick = (e) => {
+    if (e.target === lightbox || e.target === wrapper) {
+        closeLightbox();
+    }
+};
 
 document.addEventListener("keydown", (e) => {
-
-    if (!lightbox.classList.contains("active"))
-        return;
-
-    if (e.key === "Escape")
-        close();
-
-    if (e.key === "ArrowRight")
-        next();
-
-    if (e.key === "ArrowLeft")
-        prev();
-
+    if (!lightbox.classList.contains("active")) return;
+    if (e.key === "Escape") closeLightbox();
+    if (e.key === "ArrowRight") next();
+    if (e.key === "ArrowLeft") prev();
 });
 </script>
 
 </body>
 </html>
+
 
 
 
