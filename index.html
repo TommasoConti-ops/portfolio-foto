@@ -84,92 +84,43 @@ h2 {
   transform: scale(1.02);
 }
 
-/* SEZIONE COMMENTI NUOVA */
-.comments-section {
+/* NUOVA SEZIONE SOCIAL INSTAGRAM */
+.instagram-section {
   max-width: 600px;
   margin: 60px auto;
   padding: 0 20px;
+  text-align: center;
 }
 
-.comments-section h3 {
-  font-size: 20px;
+.instagram-section h3 {
+  font-size: 14px;
   font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #666;
   margin-bottom: 20px;
-  letter-spacing: 1px;
 }
 
-.comment-form {
+.instagram-links {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 30px;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.comment-form input, .comment-form textarea {
-  font-family: Inter, sans-serif;
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.comment-form input:focus, .comment-form textarea:focus {
-  border-color: #111;
-}
-
-.comment-form button {
-  font-family: Inter, sans-serif;
-  align-self: flex-start;
-  background: #111;
-  color: #fff;
-  border: none;
-  padding: 12px 24px;
-  font-size: 14px;
+.instagram-link {
+  font-size: 18px;
   font-weight: 600;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
+  color: #111;
+  text-decoration: none;
+  transition: color 0.2s, opacity 0.2s;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
 }
 
-.comment-form button:hover {
-  background: #333;
-}
-
-.comments-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.comment-item {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 15px;
-}
-
-.comment-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.comment-author {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.comment-date {
-  color: #888;
-  font-size: 12px;
-}
-
-.comment-body {
-  font-size: 14px;
-  color: #444;
-  line-height: 1.5;
-  word-break: break-word;
+.instagram-link:hover {
+  color: #666;
+  border-bottom-color: #666;
 }
 
 /* LIGHTBOX BOOTSTRAP-LIKE / ULTRA CLEAN */
@@ -300,17 +251,12 @@ h2 {
   <img src="Pulp.jpg">
 </section>
 
-<!-- SEZIONE COMMENTI AGGIUNTA -->
-<section class="comments-section">
-  <h3>Lascia un commento</h3>
-  <form class="comment-form" id="commentForm">
-    <input type="text" id="nickname" placeholder="Il tuo nome o nickname (lascia vuoto per anonimo)" maxlength="40">
-    <textarea id="commentText" placeholder="Scrivi qui il tuo pensiero..." rows="4" required></textarea>
-    <button type="submit">Invia commento</button>
-  </form>
-
-  <div class="comments-list" id="commentsList">
-    <!-- I commenti compariranno qui -->
+<!-- SEZIONE INSTAGRAM AGGIUNTA AL POSTO DEI COMMENTI -->
+<section class="instagram-section">
+  <h3>Seguimi su Instagram</h3>
+  <div class="instagram-links">
+    <a href="https://www.instagram.com/tommasocontii_/" target="_blank" rel="noopener noreferrer" class="instagram-link">@tommasocontii_</a>
+    <a href="https://www.instagram.com/fotografiaarte2026/" target="_blank" rel="noopener noreferrer" class="instagram-link">@fotografiaarte2026</a>
   </div>
 </section>
 
@@ -509,82 +455,11 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") next();
     if (e.key === "ArrowLeft") prev();
 });
-
-/* ==========================================
-   LOGICA DELLA SEZIONE COMMENTI (LOCALSTORAGE)
-   ========================================== */
-const commentForm = document.getElementById("commentForm");
-const commentsList = document.getElementById("commentsList");
-
-// Carica i commenti esistenti all'avvio della pagina
-document.addEventListener("DOMContentLoaded", loadComments);
-
-commentForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    
-    const nicknameInput = document.getElementById("nickname").value.trim();
-    const commentText = document.getElementById("commentText").value.trim();
-    
-    // Se il nickname è vuoto, viene impostato di default come "Anonimo"
-    const author = nicknameInput ? nicknameInput : "Anonimo";
-    
-    const date = new Date().toLocaleDateString("it-IT", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-    });
-
-    const newComment = { author, text: commentText, date };
-    
-    saveComment(newComment);
-    appendCommentDOM(newComment);
-    
-    commentForm.reset();
-});
-
-function saveComment(comment) {
-    let comments = localStorage.getItem("portfolio_comments") 
-        ? JSON.parse(localStorage.getItem("portfolio_comments")) 
-        : [];
-    comments.push(comment);
-    localStorage.setItem("portfolio_comments", JSON.stringify(comments));
-}
-
-function loadComments() {
-    let comments = localStorage.getItem("portfolio_comments") 
-        ? JSON.parse(localStorage.getItem("portfolio_comments")) 
-        : [];
-    comments.forEach(comment => appendCommentDOM(comment));
-}
-
-function appendCommentDOM(comment) {
-    const commentItem = document.createElement("div");
-    commentItem.classList.add("comment-item");
-    
-    commentItem.innerHTML = `
-        <div class="comment-header">
-            <span class="comment-author">${escapeHTML(comment.author)}</span>
-            <span class="comment-date">${comment.date}</span>
-        </div>
-        <div class="comment-body">${escapeHTML(comment.text)}</div>
-    `;
-    
-    // Mostra l'ultimo commento in alto
-    commentsList.insertBefore(commentItem, commentsList.firstChild);
-}
-
-// Funzione di sicurezza elementare per prevenire injection di codice malevolo nei commenti
-function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, 
-        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-    );
-}
 </script>
 
 </body>
 </html>
+
 
 
 
